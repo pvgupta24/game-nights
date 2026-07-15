@@ -1,0 +1,8 @@
+# Normalise line endings: LF in the repo, on every platform.
+* text=auto eol=lf
+
+# Binary assets — never touch line endings or diff.
+*.png binary
+*.mp3 binary
+*.pdf binary
+*.svg text eol=lf

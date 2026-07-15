@@ -1,0 +1,33 @@
+# ── Python ───────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+
+# ── OS / editor cruft ────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Claude Code local settings (leaks username + machine paths) ──────
+.claude/settings.local.json
+
+# ── Private per-event overlays (internal content — NEVER commit) ─────
+events/*/config.local.js
+
+# ── Large / copyrighted media (never commit) ────────────────────────
+events/2026.zip
+# music clips are copyrighted mp3s …
+events/*/clips/*.mp3
+# … except the original demo tone, which ships with the template
+!events/demo/clips/*.mp3
+# March 2026 media → distributed via a GitHub Release, not committed
+events/2026-03-rvt-trivia/trivia_clips/
+events/2026-03-rvt-trivia/archive/
+
+# ── Generated / source artefacts we don't ship ──────────────────────
+events/*/assets/original/
+events/*/assets/*.pdf
+
+# ── Planning docs (drafts, question banks, prompts) ─────────────────
+events/*/questions*.md
+events/*/questions*.txt
+events/*/selected.md
+events/*/team-card-prompts.md

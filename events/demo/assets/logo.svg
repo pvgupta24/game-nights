@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Game Nights logo">
+  <rect x="3" y="3" width="42" height="42" rx="11" fill="#4ade80"/>
+  <circle cx="15" cy="15" r="4.2" fill="#04220f"/>
+  <circle cx="33" cy="15" r="4.2" fill="#04220f"/>
+  <circle cx="24" cy="24" r="4.2" fill="#04220f"/>
+  <circle cx="15" cy="33" r="4.2" fill="#04220f"/>
+  <circle cx="33" cy="33" r="4.2" fill="#04220f"/>
+</svg>

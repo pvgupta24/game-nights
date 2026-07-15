@@ -1,0 +1,37 @@
+[
+  {
+    "out": "M2.mp3",
+    "title": "Seven Nation Army - The White Stripes",
+    "url": "https://www.youtube.com/watch?v=0J2QdDbelmY",
+    "question_start": 0,
+    "question_duration": 11
+  },
+  {
+    "out": "M1.mp3",
+    "title": "Wanna Be Startin' Somethin' (chant) - Michael Jackson",
+    "url": "https://www.youtube.com/watch?v=1XMvPTFzgVU",
+    "question_start": 288,
+    "question_duration": 12
+  },
+  {
+    "out": "M10.mp3",
+    "title": "Eye of the Tiger - Survivor",
+    "url": "https://www.youtube.com/watch?v=btPJPFnesV4",
+    "question_start": 0,
+    "question_duration": 9
+  },
+  {
+    "out": "freed.mp3",
+    "title": "Freed From Desire - Gala",
+    "url": "https://www.youtube.com/watch?v=p3l7fgvrEKM",
+    "question_start": 59,
+    "question_duration": 12
+  },
+  {
+    "out": "kids.mp3",
+    "title": "Kids - MGMT",
+    "url": "https://www.youtube.com/watch?v=fe4EK4HSPkI",
+    "question_start": 70,
+    "question_duration": 15
+  }
+]

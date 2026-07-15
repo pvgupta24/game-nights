@@ -1,0 +1,9 @@
+[
+  {
+    "out": "demo-tone.mp3",
+    "title": "Demo tone (placeholder - replace with your own song)",
+    "url": "https://www.youtube.com/watch?v=syFZfO_wfMQ",
+    "question_start": 0,
+    "question_duration": 7
+  }
+]

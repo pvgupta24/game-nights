@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Game Nights — trivia boards</title>
+  <meta name="description" content="Config-driven Jeopardy-style trivia boards you can run in a browser.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #060c18;
+      --bg2: #04070f;
+      --panel: rgba(255, 255, 255, .035);
+      --panel-2: rgba(255, 255, 255, .06);
+      --line: rgba(255, 255, 255, .09);
+      --ink: #eef2f8;
+      --ink-dim: #a0aec0;
+      --muted: #596478;
+      --accent: #4ade80;
+      --gold: #f5c542;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; }
+
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(1200px 600px at 80% -10%, rgba(74, 222, 128, .10), transparent 60%),
+        radial-gradient(1000px 500px at 0% 0%, rgba(245, 197, 66, .06), transparent 55%),
+        var(--bg);
+      color: var(--ink);
+      font-family: "Inter", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      padding: clamp(1.5rem, 5vw, 4rem) clamp(1rem, 5vw, 3rem) 3rem;
+    }
+
+    .wrap { max-width: 1080px; margin: 0 auto; }
+
+    header { margin-bottom: 2.4rem; }
+
+    .brand {
+      display: inline-flex; align-items: center; gap: .6rem;
+      font-family: "Barlow Condensed", sans-serif; font-weight: 800;
+      font-size: clamp(2.2rem, 6vw, 3.6rem); letter-spacing: .01em; text-transform: uppercase;
+      line-height: 1;
+    }
+    .brand .dot { width: .5em; height: .5em; border-radius: 50%; background: var(--accent); box-shadow: 0 0 24px var(--accent); }
+    .brand b { color: var(--gold); font-weight: 900; }
+
+    .tagline { margin-top: .7rem; color: var(--ink-dim); font-size: 1.02rem; max-width: 42rem; line-height: 1.55; }
+    .tagline code { font-family: "JetBrains Mono", monospace; font-size: .85em; color: var(--gold); background: var(--panel-2); padding: .1em .4em; border-radius: 6px; }
+
+    .grid {
+      display: grid; gap: 1.1rem;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+
+    .card {
+      position: relative; display: flex; flex-direction: column;
+      background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 1.3rem 1.3rem 1.1rem; transition: transform .16s ease, border-color .16s ease, background .16s ease;
+    }
+    .card:hover { transform: translateY(-3px); border-color: rgba(74, 222, 128, .4); background: var(--panel-2); }
+
+    .chip {
+      align-self: flex-start; font-family: "JetBrains Mono", monospace; font-weight: 500; font-size: .72rem;
+      letter-spacing: .04em; color: var(--gold); background: rgba(245, 197, 66, .1);
+      border: 1px solid rgba(245, 197, 66, .28); padding: .22rem .55rem; border-radius: 999px; margin-bottom: .9rem;
+    }
+
+    .card h2 {
+      font-family: "Barlow Condensed", sans-serif; font-weight: 700; text-transform: uppercase;
+      font-size: 1.5rem; letter-spacing: .01em; line-height: 1.08;
+    }
+    .card p { margin-top: .4rem; color: var(--ink-dim); font-size: .9rem; line-height: 1.5; flex: 1; }
+
+    .actions { display: flex; gap: .5rem; margin-top: 1.1rem; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: .35rem; text-decoration: none;
+      font-weight: 600; font-size: .84rem; padding: .5rem .85rem; border-radius: 9px;
+      border: 1px solid var(--line); color: var(--ink); background: var(--panel-2); transition: background .15s, border-color .15s;
+    }
+    .btn:hover { background: rgba(255, 255, 255, .1); }
+    .btn.primary { background: var(--accent); color: #04220f; border-color: transparent; }
+    .btn.primary:hover { filter: brightness(1.08); }
+
+    footer {
+      margin-top: 2.6rem; padding-top: 1.4rem; border-top: 1px solid var(--line);
+      color: var(--muted); font-size: .82rem; line-height: 1.6;
+    }
+    footer a { color: var(--ink-dim); }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand"><span class="dot"></span>GAME <b>NIGHTS</b></div>
+      <p class="tagline">Config-driven, single-file trivia boards that run in any browser — no build step, no
+        server needed. Each event is a folder with one <code>config.js</code>. Pick a board:</p>
+    </header>
+
+    <main id="grid" class="grid"></main>
+
+    <footer>
+      Open source · MIT. New game = copy <code>events/demo/</code>, edit <code>config.js</code>, add a line to
+      <code>events.js</code>. See the <a href="https://github.com/pvgupta24/game-nights">README</a>.
+    </footer>
+  </div>
+
+  <script src="events.js"></script>
+  <script>
+    (function () {
+      var events = window.TRIVIA_EVENTS || [];
+      var grid = document.getElementById("grid");
+      function esc(s) { var d = document.createElement("div"); d.textContent = s == null ? "" : s; return d.innerHTML; }
+      grid.innerHTML = events.map(function (ev) {
+        var base = "events/" + ev.slug + "/";
+        var play = base + (ev.play || "index.html");
+        var cards = ev.cards ? '<a class="btn" href="' + base + 'team-cards.html">Team cards</a>' : "";
+        return '' +
+          '<article class="card">' +
+            (ev.date ? '<span class="chip">' + esc(ev.date) + '</span>' : '') +
+            '<h2>' + esc(ev.title) + '</h2>' +
+            '<p>' + esc(ev.subtitle) + '</p>' +
+            '<div class="actions">' +
+              '<a class="btn primary" href="' + play + '">Open board →</a>' +
+              cards +
+            '</div>' +
+          '</article>';
+      }).join("");
+      if (!events.length) grid.innerHTML = '<p style="color:var(--ink-dim)">No events yet — add one to events.js.</p>';
+    })();
+  </script>
+</body>
+
+</html>
