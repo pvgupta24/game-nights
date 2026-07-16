@@ -1,5 +1,8 @@
   :root{ --ink:#16181d; --muted:#6b7280; }
-  *{box-sizing:border-box}
+  *{box-sizing:border-box; scrollbar-width:thin; scrollbar-color:#9aa0a8 transparent;}
+  *::-webkit-scrollbar{width:9px; height:9px;}
+  *::-webkit-scrollbar-track{background:transparent;}
+  *::-webkit-scrollbar-thumb{background:#9aa0a8; border-radius:999px;}
   body{ margin:0; background:#26282e; color:var(--ink); font-family:"Segoe UI", system-ui, -apple-system, sans-serif; }
 
   /* ---------- toolbar (hidden in print) ---------- */
@@ -55,12 +58,6 @@
   .slip .fallback{font-weight:800; font-size:1rem; color:#16181d; text-align:center; padding:.3rem;}
   .teamband{grid-column:1/-1; margin:.18in 0 .04in; font-size:.72rem; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:#9aa0a8; border-top:1px solid #e2e2e2; padding-top:.1in;}
   body.print-hide-bands .teamband{display:none;}
-
-  /* optional Gemini credit */
-  .gem{position:absolute; right:6px; bottom:5px; display:none; align-items:center; gap:3px; background:rgba(255,255,255,.78); border-radius:6px; padding:2px 5px;}
-  body.showgem .gem{display:inline-flex;}
-  .gem svg{width:11px; height:11px;}
-  .gem span{font-size:7px; font-weight:700; color:#444; letter-spacing:.04em;}
 
   @media print{
     body{background:#fff}

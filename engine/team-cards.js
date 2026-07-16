@@ -15,8 +15,6 @@
    Letter page so the fold line lands on the centre.
    ===================================================================== */
 
-const GEM = `<span class="gem"><svg viewBox="0 0 24 24"><path d="M12 0c.8 6 5.2 10.4 11.2 12-6 1.6-10.4 6-11.2 12-.8-6-5.2-10.4-11.2-12C6.8 10.4 11.2 6 12 0Z" fill="#4285F4"/></svg><span>Gemini</span></span>`;
-
 let PRESETS = [], mode = "cards", theme = null;
 
 function presetTeams(key) {
@@ -55,7 +53,6 @@ function render() {
         <div class="bottom">
           <div class="imgbox">
             <img src="${t.logo || ""}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'fallback',textContent:'${t.name}'}))">
-            ${GEM}
           </div>
           ${t.tagline ? `<div class="tag">${t.tagline}</div>` : ""}
         </div>`;
@@ -72,7 +69,7 @@ function render() {
       for (let i = 0; i < n; i++) {
         const s = document.createElement("div");
         s.className = "slip"; s.style.setProperty("--tc", t.color);
-        s.innerHTML = `<img src="${t.logo || ""}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'fallback',textContent:'${t.name}'}))">${GEM}`;
+        s.innerHTML = `<img src="${t.logo || ""}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'fallback',textContent:'${t.name}'}))">`;
         stage.appendChild(s);
       }
     });
@@ -106,9 +103,6 @@ function boot() {
     </div>
     <div class="grp" id="tagGrp">
       <label><input type="checkbox" id="tagChk" checked onchange="document.body.classList.toggle('notag', !this.checked)"> Taglines</label>
-    </div>
-    <div class="grp">
-      <label><input type="checkbox" id="gemChk" onchange="document.body.classList.toggle('showgem', this.checked)"> Gemini credit</label>
     </div>
     <div class="grp"><button onclick="window.print()">🖨 Print</button></div>
     <div class="hint" id="hint"></div>
