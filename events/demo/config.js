@@ -23,8 +23,8 @@ window.TRIVIA_CONFIG = {
   /* ---- meta: identity, branding, storage ---- */
   meta: {
     slug: "demo",                         // REQUIRED · unique · localStorage namespace + gallery link
-    version: 1,                           // [1] bump to reset everyone's saved scores for this event
-    mode: "jeopardy",                     // ["jeopardy"] the game type (more modes planned)
+    version: 2,                           // [1] bump to reset everyone's saved scores for this event
+    mode: "quizboard",                     // ["quizboard"] the game type (more modes planned)
     pageTitle: "Game Nights · Demo Board",// [<title> <titleAccent>] browser tab text
     title: "GAME",                        // brand — plain part (header) / "GAME <b>NIGHTS</b>" (rules + winner)
     titleAccent: "NIGHTS",                // brand — bold/accent part
@@ -32,6 +32,7 @@ window.TRIVIA_CONFIG = {
     subtitle: "The copy-me template · edit config.js",  // [""] small line under the brand, top-left
     editionLine: "Demo Edition · the kitchen sink",     // [""] shown on the rules + winner cards
     date: "2026-01-01",                   // [""] free-form; also handy on the gallery
+    author: "Praveen Gupta",              // [none] board credit — shown on the rules card; mirror it in ../../events.js for the gallery card
     avTestUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",  // [rickroll] the "AV Test 🔊" button target
     // legacyStorageKey: "old-key-here",  // optional · one-time migrate scores from a previous storage key
   },
@@ -69,7 +70,7 @@ window.TRIVIA_CONFIG = {
         },
         {
           v: 500,
-          q: "Jeopardy pointer words like this, these, those and here are highlighted automatically — but only on this question side.",
+          q: "Quiz-show pointer words like this, these, those and here are highlighted automatically — but only on this question side.",
           a: "Pointer words auto-highlight (question side only)",
           note: "Notice the answer side leaves 'this/these' plain — auto-highlight is question-only.",
         },
@@ -83,7 +84,7 @@ window.TRIVIA_CONFIG = {
           v: 100,
           q: "Add img:\"assets/…\" and a LOCAL image shows on the answer reveal.",
           a: "Local asset image",
-          img: "assets/badge-star.svg",              // a file in this event's assets/ folder
+          img: "assets/logo.svg",                    // a file in this event's assets/ folder
         },
         {
           v: 200,
@@ -142,7 +143,7 @@ window.TRIVIA_CONFIG = {
           a: "One clue, all fields",                                                          // answer (required)
           clue: "Press C — the host-only hint.",                                              // host hint (C)
           note: "Host-only italic note.",                                                     // host note
-          img: "assets/badge-diamond.svg",                                                    // answer image — but yt wins if present
+          img: "assets/logo.svg",                                                             // answer image — but yt wins if present
           audio: "clips/demo-tone.mp3",                                                       // local clip (preferred over ytAudio)
           ytAudio: { id: "syFZfO_wfMQ", start: 0, duration: 7 },                              // YouTube snippet fallback
           yt: { id: "syFZfO_wfMQ", start: 40 },                                                // answer video (supersedes img)
@@ -222,7 +223,7 @@ window.TRIVIA_CONFIG = {
     openOnLoad: true,                     // [true] show the rules splash when the board loads
     answerNote: {
       heading: "Answer in the form of a question",
-      body: `It's Jeopardy! Phrase every answer as a question — <b>"What is…?"</b> or <b>"Who is…?"</b>`,
+      body: `Classic quiz-show rules: phrase every answer as a question — <b>"What is…?"</b> or <b>"Who is…?"</b>`,
       example: `e.g. "The Red Planet" → "What is Mars?"`,
     },
     items: [

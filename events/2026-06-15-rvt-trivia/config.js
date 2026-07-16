@@ -1,8 +1,8 @@
 /* =====================================================================
    RVT Trivia · June 2026 · World Cup Edition  —  game config
    =====================================================================
-   Public config for the game-nights jeopardy engine. Rendered by
-   ../../engine/jeopardy.js. This is the PUBLIC board (4 categories); the
+   Public config for the game-nights quizboard engine. Rendered by
+   ../../engine/quizboard.js. This is the PUBLIC board (4 categories); the
    host's private 5th category (Rivian/VWG) lives in the gitignored
    config.local.js overlay, which the engine loads after this file.
 
@@ -16,13 +16,14 @@ window.TRIVIA_CONFIG = {
   meta: {
     slug: "2026-06-15-rvt-trivia",
     version: 1,
-    mode: "jeopardy",
+    mode: "quizboard",
     pageTitle: "RVT Trivia · June 2026 · World Cup Edition",
     title: "RVT",
     titleAccent: "TRIVIA",
     subtitle: "World Cup Edition · 06.2026",
     editionLine: "World Cup Edition · June 2026",
     date: "2026-06-15",
+    author: "Praveen Gupta",
     legacyStorageKey: "rvt-trivia-2026-06-v3",   // one-time migration of saved scores
   },
 
@@ -197,7 +198,7 @@ window.TRIVIA_CONFIG = {
     openOnLoad: true,
     answerNote: {
       heading: "Answer in the form of a question",
-      body: `It's Jeopardy! Phrase every answer as a question — <b>"What is…?"</b> or <b>"Who is…?"</b>`,
+      body: `Classic quiz-show rules: phrase every answer as a question — <b>"What is…?"</b> or <b>"Who is…?"</b>`,
       example: `e.g. "The GOAT of football" → "Who is Messi?" 🐐`,
     },
     items: [
