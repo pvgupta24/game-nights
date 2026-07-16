@@ -1,5 +1,5 @@
 /* =====================================================================
-   game-nights · jeopardy engine
+   game-nights · quizboard engine
    =====================================================================
    This file is the whole app. An event never edits it — an event ships a
    `config.js` that sets `window.TRIVIA_CONFIG`, and the engine builds the
@@ -8,17 +8,17 @@
    Load order in an event's index.html (classic scripts, no modules/fetch →
    works on file://, `python -m http.server`, and GitHub Pages):
 
-       <link rel="stylesheet" href="../../engine/jeopardy.css">
+       <link rel="stylesheet" href="../../engine/quizboard.css">
        <script src="config.js"></script>        <!-- window.TRIVIA_CONFIG -->
        <script src="config.local.js"></script>  <!-- optional private overlay -->
-       <script src="../../engine/jeopardy.js"></script>
+       <script src="../../engine/quizboard.js"></script>
 
    Config reference + fmt() conventions live in the repo README and in
    events/demo/config.js (the fully-commented kitchen-sink template).
    ===================================================================== */
 
 /* ============ engine constants ============ */
-/* The three palettes are baked into jeopardy.css (data-theme=noir|dusk|day).
+/* The three palettes are baked into quizboard.css (data-theme=noir|dusk|day).
    A config only chooses which one is the default (meta/theme.default). */
 const THEME_LIST = [
   { key: "noir", label: "Stadium Noir", sw: ["#060c18", "#4ade80", "#f5c542"] },
@@ -56,11 +56,12 @@ const DEFAULTS = {
   meta: {
     slug: null,             // REQUIRED — localStorage namespace + gallery link
     version: 1,
-    mode: "jeopardy",
+    mode: "quizboard",
     pageTitle: null,        // browser tab; defaults to "<title> <titleAccent>"
     title: "GAME",          // brand — plain part
     titleAccent: "NIGHT",   // brand — bold part (rules/winner render <b>…</b>)
     logo: null,             // optional brand mark (path/URL) shown top-left; omit → a small accent dot
+    author: null,           // who made this board — credited on the rules card (and on the gallery via events.js)
     subtitle: "",           // header line under the brand
     editionLine: "",        // shown on the rules + winner cards
     date: "",
@@ -103,7 +104,7 @@ function deepMerge(base, over) {
 function defaultAnswerNote() {
   return {
     heading: "Answer in the form of a question",
-    body: `It's Jeopardy! Phrase every answer as a question — <b>"What is…?"</b> or <b>"Who is…?"</b>`,
+    body: `Classic quiz-show rules: phrase every answer as a question — <b>"What is…?"</b> or <b>"Who is…?"</b>`,
     example: `e.g. "The 16th U.S. President" → "Who is Lincoln?"`,
   };
 }
@@ -136,6 +137,8 @@ function buildShell(cfg) {
   const brandIcon = m.logo
     ? `<img class="brandlogo" src="${esc(m.logo)}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'dot'}))">`
     : `<span class="dot"></span>`;
+  const rulesSub = [m.editionLine, m.author ? `<span class="rby">board by ${esc(m.author)}</span>` : ""]
+    .filter(Boolean).join(" · ");
   const an = cfg.rules.answerNote;
   const rulesLis = cfg.rules.items.map(it =>
     `<li class="rule"><span class="num">${it.num}</span><span class="txt">${it.text}</span></li>`).join("\n        ");
@@ -239,7 +242,7 @@ function buildShell(cfg) {
     <div class="rcard">
       <button class="hbtn mclose" onclick="closeRules()" title="Close (Esc)">✕</button>
       <h1>${brandRich}</h1>
-      <div class="rsub">${m.editionLine}</div>
+      <div class="rsub">${rulesSub}</div>
 
       <div class="answer-note">
         <div class="h">${an.heading}</div>
@@ -386,6 +389,7 @@ function renderMarkerPick() {
 function renderBoard() {
   const board = $("board");
   board.style.gridTemplateColumns = `repeat(${CFG.categories.length}, 1fr)`;
+  board.style.gridTemplateRows = `auto repeat(${ROWS}, minmax(0, 1fr))`;   // the stylesheet default assumes 5 rows
   board.innerHTML = "";
   CFG.categories.forEach((c, ci) => {
     const el = document.createElement("div");
@@ -546,7 +550,7 @@ function closeOverlay() {
 
 /* Auto-format clue/answer text:
    • «word», <<word>> or *word*  → highlighted key term  (so you never see raw « » again)
-   • this / these / those / here  → auto-highlighted Jeopardy pointer (only when kw=true)
+   • this / these / those / here  → auto-highlighted quiz-show pointer (only when kw=true)
    • plain text & inline HTML (<em>…</em>, <b>…</b>, <br>) also work. */
 function fmt(s, kw) {
   s = String(s ?? "")

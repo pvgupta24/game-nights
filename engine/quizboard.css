@@ -103,6 +103,37 @@
       transition: background .25s ease, color .25s ease;
     }
 
+    /* subtle, theme-aware scrollbars — if one ever appears, it should whisper */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--panel-3) transparent;
+    }
+
+    *::-webkit-scrollbar {
+      width: 9px;
+      height: 9px;
+    }
+
+    *::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    *::-webkit-scrollbar-thumb {
+      background: var(--panel-3);
+      border-radius: 999px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+
+    *::-webkit-scrollbar-thumb:hover {
+      background: var(--muted);
+      background-clip: padding-box;
+    }
+
+    *::-webkit-scrollbar-corner {
+      background: transparent;
+    }
+
     /* subtle fractal-noise grain, IPL style */
     body::before {
       content: "";
@@ -259,7 +290,7 @@
       font-weight: 800;
       letter-spacing: .05em;
       text-transform: uppercase;
-      font-size: clamp(.72rem, 1.2vw, 1.05rem);
+      font-size: clamp(.78rem, 1.5vw, 1.35rem);
       animation: drop .5s cubic-bezier(.2, .7, .2, 1) backwards;
     }
 
@@ -272,7 +303,7 @@
       color: var(--gold);
       font-family: "JetBrains Mono", monospace;
       font-weight: 800;
-      font-size: clamp(.9rem, 3.6vmin, 2.7rem);
+      font-size: clamp(1rem, 5vmin, 4rem);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -384,7 +415,7 @@
     .team .tname {
       display: block;
       font-weight: 800;
-      font-size: .82rem;
+      font-size: clamp(.82rem, 1vw, 1.05rem);
       letter-spacing: .02em;
       white-space: nowrap;
       overflow: hidden;
@@ -403,7 +434,7 @@
       flex: 1;
       font-family: "JetBrains Mono", monospace;
       font-weight: 800;
-      font-size: clamp(1.35rem, 2.5vw, 2.1rem);
+      font-size: clamp(1.35rem, 2.7vw, 2.5rem);
       color: var(--ink);
       font-variant-numeric: tabular-nums;
       line-height: 1;
@@ -746,7 +777,7 @@
       font-weight: 700;
     }
 
-    /* highlighted key term (from «…», *…* or <em>) and the auto Jeopardy pointer (this/these) */
+    /* highlighted key term (from «…», *…* or <em>) and the auto quiz-show pointer (this/these) */
     .hl {
       color: var(--accent);
       font-weight: 800;
@@ -1135,7 +1166,7 @@
       background: var(--modal-bg);
       border: 1px solid var(--line);
       border-radius: 18px;
-      padding: 2rem 2.8rem;
+      padding: clamp(1.1rem, 2.6vh, 2rem) clamp(1.2rem, 3vw, 2.8rem);
       box-shadow: 0 40px 90px -30px rgba(0, 0, 0, .6);
     }
 
@@ -1146,7 +1177,7 @@
       text-transform: uppercase;
       line-height: 1.02;
       color: var(--ink);
-      font-size: 2.6rem;
+      font-size: clamp(1.7rem, 5vh, 2.6rem);
       margin-bottom: .05rem;
       text-wrap: balance;
     }
@@ -1157,19 +1188,23 @@
 
     .rcard .rsub {
       font-family: "JetBrains Mono", monospace;
-      font-size: .74rem;
+      font-size: clamp(.62rem, 1.5vh, .74rem);
       letter-spacing: .24em;
       text-transform: uppercase;
       color: var(--ink-dim);
-      margin-bottom: 1.3rem;
+      margin-bottom: clamp(.6rem, 1.8vh, 1.3rem);
+    }
+
+    .rcard .rsub .rby {
+      color: var(--accent);
     }
 
     .answer-note {
       background: color-mix(in oklch, var(--gold) 12%, transparent);
       border: 1px solid color-mix(in oklch, var(--gold) 34%, var(--line));
       border-radius: 12px;
-      padding: 1rem 1.3rem;
-      margin-bottom: 1.3rem;
+      padding: clamp(.6rem, 1.6vh, 1rem) 1.3rem;
+      margin-bottom: clamp(.6rem, 1.8vh, 1.3rem);
     }
 
     .answer-note .h {
@@ -1177,13 +1212,13 @@
       text-transform: uppercase;
       letter-spacing: .04em;
       font-weight: 800;
-      font-size: 1.3rem;
+      font-size: clamp(1rem, 2.6vh, 1.3rem);
       color: var(--gold);
       margin-bottom: .25rem;
     }
 
     .answer-note p {
-      font-size: 1.18rem;
+      font-size: clamp(.95rem, 2.3vh, 1.18rem);
       line-height: 1.5;
       color: var(--ink);
       text-wrap: balance;
@@ -1191,18 +1226,18 @@
 
     .answer-note .eg {
       display: inline-block;
-      margin-top: .45rem;
+      margin-top: clamp(.2rem, .8vh, .45rem);
       color: var(--ink-dim);
       font-style: italic;
-      font-size: 1.08rem;
+      font-size: clamp(.85rem, 2.1vh, 1.08rem);
     }
 
     .rules-list {
       list-style: none;
       display: flex;
       flex-direction: column;
-      gap: .85rem;
-      margin: 0 auto 1.4rem;
+      gap: clamp(.4rem, 1.5vh, .85rem);
+      margin: 0 auto clamp(.7rem, 2vh, 1.4rem);
       text-align: left;
       max-width: 760px;
     }
@@ -1215,31 +1250,31 @@
 
     .rule .num {
       flex: none;
-      width: 34px;
-      height: 34px;
+      width: clamp(26px, 4.4vh, 34px);
+      height: clamp(26px, 4.4vh, 34px);
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       font-family: "JetBrains Mono", monospace;
       font-weight: 800;
-      font-size: 1rem;
+      font-size: clamp(.8rem, 1.9vh, 1rem);
       background: color-mix(in oklch, var(--accent) 16%, transparent);
       color: var(--accent);
       border: 1px solid color-mix(in oklch, var(--accent) 34%, transparent);
     }
 
     .rule .txt {
-      font-size: 1.15rem;
+      font-size: clamp(.92rem, 2.25vh, 1.15rem);
       line-height: 1.4;
       color: var(--ink);
-      padding-top: 4px;
+      padding-top: clamp(2px, .5vh, 4px);
       text-wrap: pretty;
     }
 
     .rule .txt small {
       display: block;
-      font-size: .92rem;
+      font-size: clamp(.76rem, 1.8vh, .92rem);
       color: var(--ink-dim);
       margin-top: .15rem;
     }
@@ -1280,7 +1315,7 @@
     }
 
     .rteam {
-      width: 150px;
+      width: clamp(92px, 17vh, 150px);
       aspect-ratio: 1.6;
       flex: none;
       border-radius: 13px;
@@ -1301,7 +1336,7 @@
     .rteam .rini {
       font-family: "Barlow Condensed", sans-serif;
       font-weight: 900;
-      font-size: 1.7rem;
+      font-size: clamp(1.05rem, 2.6vh, 1.7rem);
       color: #fff;
       text-shadow: 0 1px 3px rgba(0, 0, 0, .4);
     }
@@ -1700,4 +1735,86 @@
       color: var(--ink);
       padding: .35rem .5rem;
       font-family: "JetBrains Mono", monospace;
+    }
+
+    /* ============ small screens — minor fixes ============
+       (a proper participant "view mode" for phones is on the roadmap;
+       these just keep the host board usable on a small window) */
+    @media (max-width: 760px) {
+      #app {
+        padding: .6rem .6rem .5rem;
+        gap: .55rem;
+      }
+
+      .brand { gap: .45rem; }
+
+      .brand .mark {
+        font-size: 1.15rem;
+        gap: .35rem;
+      }
+
+      .brand .brandlogo { height: 20px; }
+
+      .brand .sub {
+        font-size: .52rem;
+        letter-spacing: .16em;
+      }
+
+      header { gap: .4rem; }
+
+      .hbtn {
+        font-size: .54rem;
+        padding: .32rem .5rem;
+        letter-spacing: .08em;
+      }
+
+      #board { gap: 5px; }
+
+      .cat {
+        font-size: .5rem;
+        letter-spacing: .02em;
+        padding: .35rem .15rem;
+      }
+
+      #rail { flex-wrap: wrap; }
+
+      .team {
+        flex: 1 1 46%;
+        gap: .45rem;
+      }
+
+      .team .tlogo {
+        width: 30px;
+        height: 30px;
+      }
+
+      /* overlay: stack the panes and let them scroll */
+      #overlay.open {
+        padding: .6rem .6rem .55rem;
+        gap: .5rem;
+      }
+
+      .osplit,
+      .osplit.hasBonus {
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        gap: 8px;
+      }
+
+      .pane {
+        flex: none;
+        min-height: 9.5rem;
+        padding: .85rem .9rem;
+      }
+
+      .legend { display: none; }
+
+      .abtn {
+        font-size: .58rem;
+        padding: .42rem .6rem;
+        letter-spacing: .08em;
+      }
+
+      .award .chip { font-size: .58rem; }
     }
