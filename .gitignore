@@ -18,9 +18,9 @@ events/2026.zip
 events/*/clips/*.mp3
 # … except the original demo tone, which ships with the template
 !events/demo/clips/*.mp3
-# March 2026 media → distributed via a GitHub Release, not committed
-events/2026-03-rvt-trivia/trivia_clips/
-events/2026-03-rvt-trivia/archive/
+# The archived March 2026 event is a third-party export — kept local only,
+# never published in this repo
+events/2026-03-rvt-trivia/
 
 # ── Generated / source artefacts we don't ship ──────────────────────
 events/*/assets/original/

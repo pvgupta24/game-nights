@@ -10,16 +10,22 @@
      title     card heading
      subtitle  one line under the title
      date      free-form date/label shown as a chip
+     author    who made the board — credited on the card (and set
+               meta.author in the event's config.js for the in-board credit)
+     kind      "board" (a real game night) or "template" (a starting point);
+               the gallery groups cards into sections by this
      cards     true → also link the printable team-cards.html page
      play      [index.html] the file the "Open" button links to inside the
-               event folder — set for non-engine events (e.g. an exported deck)
+               event folder — set for non-engine events
    ===================================================================== */
 window.TRIVIA_EVENTS = [
   {
     slug: "2026-06-15-rvt-trivia",
     title: "RVT Trivia — June 2026",
-    subtitle: "World Cup Edition · 5-category Jeopardy board",
+    subtitle: "World Cup Edition · 5-category quiz board",
     date: "June 15, 2026",
+    author: "Praveen Gupta",
+    kind: "board",
     cards: true,
   },
   {
@@ -27,13 +33,8 @@ window.TRIVIA_EVENTS = [
     title: "Demo Board",
     subtitle: "The copy-me template — every field, fully commented",
     date: "Template",
+    author: "Praveen Gupta",
+    kind: "template",
     cards: true,
-  },
-  {
-    slug: "2026-03-rvt-trivia",
-    title: "RVT Music Trivia — March 2026",
-    subtitle: "Music round (archived JeopardyLabs export)",
-    date: "March 2026",
-    cards: false,
   },
 ];
