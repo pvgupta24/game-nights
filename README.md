@@ -1,14 +1,14 @@
 # 🎲 game-nights
 
 **Config-driven, single-file trivia boards that run in any browser.**
-A Jeopardy-style game engine where creating a new trivia night means copying a
+A quiz-show-style game engine where creating a new trivia night means copying a
 folder and editing **one config file** — no build step, no framework, no server
 required. Runs from a plain `file://`, from `python -m http.server`, and from
 GitHub Pages.
 
 Built for real office trivia nights and open-sourced so anyone can host their own.
 
-- **Jeopardy board** — 5×N grid, categories × values, click a square to open a clue.
+- **Quiz board** — a categories × values grid; click a square to open a clue.
 - **Automatic timer** — a car drives across the screen: direct answer clock, then
   an automatic steal clock.
 - **± scoring** — full points for a correct answer, a half-value penalty for a
@@ -51,8 +51,8 @@ game-nights/
 ├── index.html          gallery — one card per event (from events.js)
 ├── events.js           the event manifest
 ├── engine/
-│   ├── jeopardy.css     the board's styles
-│   ├── jeopardy.js      the whole game engine (reads window.TRIVIA_CONFIG)
+│   ├── quizboard.css     the board's styles
+│   ├── quizboard.js      the whole game engine (reads window.TRIVIA_CONFIG)
 │   ├── team-cards.css   printable-cards styles
 │   └── team-cards.js    printable-cards engine
 ├── events/
@@ -97,6 +97,7 @@ everything else has a sensible default.
 | `pageTitle` `[title + titleAccent]` | browser tab text |
 | `title` / `titleAccent` | brand — plain part + accent/bold part (e.g. `RVT` **`TRIVIA`**) |
 | `logo` | optional brand mark shown top-left (local `assets/…` path or any URL) — drop in your own event/org logo; omit for a small accent dot |
+| `author` | who made the board — credited on the rules card; mirror it in `events.js` so the gallery card credits them too |
 | `subtitle` `[""]` | small line under the brand |
 | `editionLine` `[""]` | shown on the rules + winner cards |
 | `date` `[""]` | free-form label |
@@ -167,7 +168,7 @@ winner: { label: "🏆 Champions!!" },
 | you type | you get |
 |---|---|
 | `«word»`, `<<word>>`, `*word*` | a highlighted key term |
-| `this` / `these` / `those` / `here` | auto-highlighted (question side only) — the Jeopardy “pointer” words |
+| `this` / `these` / `those` / `here` | auto-highlighted (question side only) — the classic quiz-show “pointer” words |
 | `<em>…</em>`, `<b>…</b>`, `<br>` | inline HTML works |
 
 The demo's **✍️ Formatting** category demonstrates each of these on screen.
@@ -268,21 +269,22 @@ Link it from a Jekyll site (e.g. a `github.io` homepage):
    [June 2026](https://<user>.github.io/game-nights/events/2026-06-15-rvt-trivia/)
 ```
 
-### The March 2026 event & large media
-
-`events/2026-03-rvt-trivia/` is an older exported board kept for the archive; its
-audio/video (`trivia_clips/`, `archive/`) is large and **not committed** — it's
-distributed via a GitHub Release instead. The board's own `index.html` + `songs.md`
-are committed and linkable.
-
 ---
 
 ## Roadmap
 
-- **In-app config editor** — edit questions/teams in the browser and export `config.js`.
-- **More modes** — standalone music round, rapid-fire, final wager (the config
+Complexity gets added incrementally, only when a real game night needs it — the
+default experience stays a folder + one config file.
+
+- **View mode** — a mobile-friendly page for *participants*: follow the live board
+  from your phone, see the current question, and buzz in.
+- **Host mode** — run a specific *instance* of a board: its scores, played squares
+  and remaining questions sync to everyone in view mode, so you can host without a
+  shared TV screen.
+- **Admin mode** — an in-browser builder that creates and edits the `config.js`
+  (questions, teams, media) without touching code.
+- **More game modes** — standalone music round, rapid-fire, final wager (the config
   already carries `meta.mode` for this).
-- Re-author the March event as an engine “music round” with YouTube embeds (no media files).
 
 ---
 
