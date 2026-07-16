@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Game Nights — trivia boards</title>
-  <meta name="description" content="Config-driven Jeopardy-style trivia boards you can run in a browser.">
+  <meta name="description" content="Config-driven quiz-show trivia boards you can run in a browser.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -26,10 +26,15 @@
       --radius: 14px;
     }
 
-    * { box-sizing: border-box; margin: 0; }
+    * { box-sizing: border-box; margin: 0; scrollbar-width: thin; scrollbar-color: var(--panel-2) transparent; }
+    *::-webkit-scrollbar { width: 9px; height: 9px; }
+    *::-webkit-scrollbar-track { background: transparent; }
+    *::-webkit-scrollbar-thumb { background: var(--panel-2); border-radius: 999px; }
 
     body {
-      min-height: 100vh;
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
       background:
         radial-gradient(1200px 600px at 80% -10%, rgba(74, 222, 128, .10), transparent 60%),
         radial-gradient(1000px 500px at 0% 0%, rgba(245, 197, 66, .06), transparent 55%),
@@ -37,28 +42,60 @@
       color: var(--ink);
       font-family: "Inter", system-ui, sans-serif;
       -webkit-font-smoothing: antialiased;
-      padding: clamp(1.5rem, 5vw, 4rem) clamp(1rem, 5vw, 3rem) 3rem;
+      padding: clamp(1.2rem, 3.5vh, 2.4rem) clamp(1rem, 5vw, 3rem) 1.2rem;
     }
 
-    .wrap { max-width: 1080px; margin: 0 auto; }
+    .wrap {
+      max-width: 1160px;
+      margin: 0 auto;
+      width: 100%;
+      flex: 1;                 /* pushes the footer to the bottom */
+      display: flex;
+      flex-direction: column;
+    }
 
-    header { margin-bottom: 2.4rem; }
+    /* brand on the left, pitch on the right — one compact masthead row */
+    header {
+      display: flex;
+      align-items: center;
+      gap: clamp(1.2rem, 4vw, 3rem);
+      flex-wrap: wrap;
+      margin-bottom: clamp(1.2rem, 3vh, 2rem);
+    }
 
     .brand {
+      flex: none;
       display: inline-flex; align-items: center; gap: .6rem;
       font-family: "Barlow Condensed", sans-serif; font-weight: 800;
-      font-size: clamp(2.2rem, 6vw, 3.6rem); letter-spacing: .01em; text-transform: uppercase;
+      font-size: clamp(2.1rem, 4.6vw, 3.2rem); letter-spacing: .01em; text-transform: uppercase;
       line-height: 1;
     }
     .brand .dot { width: .5em; height: .5em; border-radius: 50%; background: var(--accent); box-shadow: 0 0 24px var(--accent); }
     .brand b { color: var(--gold); font-weight: 900; }
 
-    .tagline { margin-top: .7rem; color: var(--ink-dim); font-size: 1.02rem; max-width: 42rem; line-height: 1.55; }
+    .tagline { flex: 1; min-width: min(280px, 100%); color: var(--ink-dim); font-size: .98rem; max-width: 44rem; line-height: 1.55; }
     .tagline code { font-family: "JetBrains Mono", monospace; font-size: .85em; color: var(--gold); background: var(--panel-2); padding: .1em .4em; border-radius: 6px; }
+
+    /* sections sit side by side on wide screens so the page fits without scrolling */
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
+      gap: 1.4rem 2rem;
+      align-items: start;
+    }
+
+    .section-title {
+      font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: .72rem;
+      letter-spacing: .3em; text-transform: uppercase; color: var(--muted);
+      margin: 0 0 .9rem;
+      display: flex; align-items: center; gap: .9rem;
+    }
+    .section-title::after { content: ""; flex: 1; height: 1px; background: var(--line); }
 
     .grid {
       display: grid; gap: 1.1rem;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
     }
 
     .card {
@@ -80,7 +117,13 @@
     }
     .card p { margin-top: .4rem; color: var(--ink-dim); font-size: .9rem; line-height: 1.5; flex: 1; }
 
-    .actions { display: flex; gap: .5rem; margin-top: 1.1rem; flex-wrap: wrap; }
+    .byline {
+      margin-top: .55rem; font-family: "JetBrains Mono", monospace; font-size: .66rem;
+      letter-spacing: .06em; color: var(--muted); text-transform: uppercase;
+    }
+    .byline b { color: var(--ink-dim); font-weight: 700; }
+
+    .actions { display: flex; gap: .5rem; margin-top: .9rem; flex-wrap: wrap; }
     .btn {
       display: inline-flex; align-items: center; gap: .35rem; text-decoration: none;
       font-weight: 600; font-size: .84rem; padding: .5rem .85rem; border-radius: 9px;
@@ -91,10 +134,11 @@
     .btn.primary:hover { filter: brightness(1.08); }
 
     footer {
-      margin-top: 2.6rem; padding-top: 1.4rem; border-top: 1px solid var(--line);
+      margin-top: 1.6rem; padding-top: 1.2rem; border-top: 1px solid var(--line);
       color: var(--muted); font-size: .82rem; line-height: 1.6;
     }
     footer a { color: var(--ink-dim); }
+    footer .copy { color: var(--ink-dim); font-weight: 600; }
   </style>
 </head>
 
@@ -106,11 +150,14 @@
         server needed. Each event is a folder with one <code>config.js</code>. Pick a board:</p>
     </header>
 
-    <main id="grid" class="grid"></main>
+    <main id="main"></main>
 
     <footer>
-      Open source · MIT. New game = copy <code>events/demo/</code>, edit <code>config.js</code>, add a line to
-      <code>events.js</code>. See the <a href="https://github.com/pvgupta24/game-nights">README</a>.
+      <span class="copy">© 2026 Praveen Gupta</span> · Source-available ·
+      <a href="https://github.com/pvgupta24/game-nights/blob/main/LICENSE">PolyForm Noncommercial</a> —
+      free for personal &amp; noncommercial use. New game = copy <code>events/demo/</code>,
+      edit <code>config.js</code>, add a line to <code>events.js</code>. See the
+      <a href="https://github.com/pvgupta24/game-nights">README</a>.
     </footer>
   </div>
 
@@ -118,24 +165,43 @@
   <script>
     (function () {
       var events = window.TRIVIA_EVENTS || [];
-      var grid = document.getElementById("grid");
+      var main = document.getElementById("main");
       function esc(s) { var d = document.createElement("div"); d.textContent = s == null ? "" : s; return d.innerHTML; }
-      grid.innerHTML = events.map(function (ev) {
+
+      function card(ev) {
         var base = "events/" + ev.slug + "/";
         var play = base + (ev.play || "index.html");
         var cards = ev.cards ? '<a class="btn" href="' + base + 'team-cards.html">Team cards</a>' : "";
+        var byline = ev.author ? '<div class="byline">by <b>' + esc(ev.author) + '</b></div>' : "";
         return '' +
           '<article class="card">' +
             (ev.date ? '<span class="chip">' + esc(ev.date) + '</span>' : '') +
             '<h2>' + esc(ev.title) + '</h2>' +
             '<p>' + esc(ev.subtitle) + '</p>' +
+            byline +
             '<div class="actions">' +
               '<a class="btn primary" href="' + play + '">Open board →</a>' +
               cards +
             '</div>' +
           '</article>';
-      }).join("");
-      if (!events.length) grid.innerHTML = '<p style="color:var(--ink-dim)">No events yet — add one to events.js.</p>';
+      }
+
+      function section(title, list) {
+        if (!list.length) return "";
+        return '<section>' +
+                 '<div class="section-title">' + esc(title) + '</div>' +
+                 '<div class="grid">' + list.map(card).join("") + '</div>' +
+               '</section>';
+      }
+
+      var boards = events.filter(function (e) { return (e.kind || "board") === "board"; });
+      var templates = events.filter(function (e) { return e.kind === "template"; });
+
+      main.innerHTML =
+        section("Start your own · templates", templates) +
+        section("Game boards", boards);
+
+      if (!events.length) main.innerHTML = '<p style="color:var(--ink-dim)">No events yet — add one to events.js.</p>';
     })();
   </script>
 </body>
