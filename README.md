@@ -15,7 +15,7 @@ Built for real office trivia nights and open-sourced so anyone can host their ow
   wrong steal, positive-only bonuses; click a score to type an exact value.
 - **Media** — answer-reveal images, embedded YouTube answer videos, and a music
   round (local mp3 clips or YouTube snippets).
-- **Three themes** — Stadium Noir / Dusk / Day, switchable live.
+- **Four themes** — Stadium Noir / Dusk / Day / Diya Night, switchable live.
 - **Winner celebration** — confetti + an embedded victory song.
 - **Printable team cards** — table tents and hand-out slips from the same roster.
 - Everything (scores, played squares, teams, theme) auto-saves in the browser.
@@ -109,7 +109,7 @@ everything else has a sensible default.
 |---|---|
 | `timers` | `{ direct: 60, steal: 20, marker: "car" }` — answer clock, then auto steal clock (seconds); `marker` is the glyph that rides the timer bar (the built-in `"car"` SVG, or any emoji e.g. `"🏁"`) |
 | `scoring` | `{ bonusValue: 100, stealPenaltyRatio: 0.5 }` — bonus points; wrong-steal costs this fraction of the value |
-| `theme` | `{ default: "noir" }` — `noir` \| `dusk` \| `day` (press **Y** to cycle) |
+| `theme` | `{ default: "noir" }` — `noir` \| `dusk` \| `day` \| `diya` (press **Y** to cycle) |
 
 ### `categories`
 An array of columns; each has a `cat` name and a `clues` array (rows, low→high value).

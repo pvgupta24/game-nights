@@ -18,12 +18,13 @@
    ===================================================================== */
 
 /* ============ engine constants ============ */
-/* The three palettes are baked into quizboard.css (data-theme=noir|dusk|day).
+/* The palettes are baked into quizboard.css (data-theme=noir|dusk|day|diya).
    A config only chooses which one is the default (meta/theme.default). */
 const THEME_LIST = [
   { key: "noir", label: "Stadium Noir", sw: ["#060c18", "#4ade80", "#f5c542"] },
   { key: "dusk", label: "Dusk Stadium", sw: ["#12091e", "#f87171", "#f5c542"] },
   { key: "day", label: "Day Game", sw: ["#f2f5f9", "#16a34a", "#b8860b"] },
+  { key: "diya", label: "Diya Night", sw: ["#160b1e", "#f59e0b", "#f472b6"] },
 ];
 const THEME_KEYS = THEME_LIST.map(t => t.key);
 
@@ -48,6 +49,7 @@ const MARKER_OPTIONS = [
   { val: "car", label: "Car" },
   { val: "🏁", label: "Flag" },
   { val: "🚀", label: "Rocket" },
+  { val: "🪔", label: "Diya" },
   { val: "⚡", label: "Bolt" },
   { val: "●", label: "Dot" },
 ];

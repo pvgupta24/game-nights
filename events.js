@@ -20,6 +20,15 @@
    ===================================================================== */
 window.TRIVIA_EVENTS = [
   {
+    slug: "2026-11-diwali-trivia",
+    title: "RVT Trivia — Diwali 2026",
+    subtitle: "Diwali Edition · 6-category quiz board",
+    date: "November 2026",
+    author: "Praveen Gupta",
+    kind: "board",
+    cards: true,
+  },
+  {
     slug: "2026-06-15-rvt-trivia",
     title: "RVT Trivia — June 2026",
     subtitle: "World Cup Edition · 5-category quiz board",

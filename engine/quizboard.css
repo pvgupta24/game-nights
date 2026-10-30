@@ -82,6 +82,34 @@
       --radius: 10px;
     }
 
+    /* festive night: aubergine sky, marigold lamps, rani-pink rangoli accents */
+    [data-theme="diya"] {
+      --bg: #160b1e;
+      --bg2: #0d0613;
+      --panel: rgba(255, 214, 160, .04);
+      --panel-2: rgba(255, 214, 160, .07);
+      --panel-3: rgba(255, 214, 160, .10);
+      --line: rgba(255, 206, 140, .10);
+      --line-soft: rgba(255, 206, 140, .06);
+      --ink: #fbf1e3;
+      --ink-dim: #c9ab8a;
+      --muted: #6f5a54;
+      --accent: #f59e0b;
+      --accent-deep: #c2410c;
+      --accent-2: #f472b6;
+      --accent-glow: rgba(245, 158, 11, .20);
+      --gold: #fcd34d;
+      --gold-fg: #1a0f00;
+      --on-accent: #2a1400;
+      --danger: #f87171;
+      --ok: #4ade80;
+      --modal-bg: #170c20;
+      --scrim: rgba(12, 6, 16, .9);
+      --vignette: transparent;
+      --texture: .45;
+      --radius: 10px;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0

@@ -40,7 +40,7 @@ window.TRIVIA_CONFIG = {
   /* ---- timers (seconds) · scoring · default palette ---- */
   timers: { direct: 45, steal: 15, marker: "clock" },  // [60/20/"clock"] clocks + timer marker ("clock" & "car" SVGs, or any emoji e.g. "🏁" — pickable in-game)
   scoring: { bonusValue: 100, stealPenaltyRatio: 0.5 },  // [100 / 0.5] bonus points; wrong-steal costs half
-  theme: { default: "dusk" },             // ["noir"] noir | dusk | day — press Y to cycle live
+  theme: { default: "dusk" },             // ["noir"] noir | dusk | day | diya — press Y to cycle live
 
   /* ---- the board · categories = columns, clues = rows (values low→high) ---- */
   categories: [
