@@ -21,8 +21,8 @@
 window.TRIVIA_EVENTS = [
   {
     slug: "2026-11-diwali-trivia",
-    title: "RVT Trivia — Diwali 2026",
-    subtitle: "Diwali Edition · 6-category quiz board",
+    title: "Diwali Trivia — 2026",
+    subtitle: "Festival of Lights · 6-category quiz board",
     date: "November 2026",
     author: "Praveen Gupta",
     kind: "board",

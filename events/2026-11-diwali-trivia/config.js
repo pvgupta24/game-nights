@@ -1,5 +1,5 @@
 /* =====================================================================
-   RVT Trivia · Diwali Edition · November 2026  —  game config
+   Diwali Trivia · November 2026  —  game config
    =====================================================================
    Public config for the game-nights quizboard engine. Rendered by
    ../../engine/quizboard.js. Six categories × five clues. An optional private
@@ -27,12 +27,12 @@ window.TRIVIA_CONFIG = {
     slug: "2026-11-diwali-trivia",
     version: 1,
     mode: "quizboard",
-    pageTitle: "RVT Trivia · Diwali Edition · November 2026",
-    title: "RVT",
+    pageTitle: "Diwali Trivia · November 2026",
+    title: "DIWALI",
     titleAccent: "TRIVIA",
     logo: "assets/logo.svg",
-    subtitle: "Diwali Edition · 11.2026",
-    editionLine: "Diwali Edition · Festival of Lights · November 2026",
+    subtitle: "Festival of Lights · 11.2026",
+    editionLine: "Festival of Lights · November 2026",
     date: "2026-11",
     author: "Praveen Gupta",
   },
