@@ -21,12 +21,29 @@
 window.TRIVIA_EVENTS = [
   {
     slug: "2026-11-diwali-trivia",
-    title: "Diwali Trivia — 2026",
+    title: "Diwali Trivia 2026",
     subtitle: "Festival of Lights · 6-category quiz board",
     date: "November 2026",
     author: "Praveen Gupta",
     kind: "board",
     cards: true,
+  },
+  {
+    slug: "2025-10-20-diwali-trivia",
+    title: "Diwali Trivia 2025",
+    subtitle: "Rounds 1 to 3 · Diwali, picture puzzles, Bollywood, songs",
+    date: "October 20, 2025",
+    author: "Praveen Gupta",
+    kind: "board",
+    cards: true,
+  },
+  {
+    slug: "2025-10-20-diwali-trivia-vancouver",
+    title: "Diwali Trivia 2025 · Vancouver",
+    subtitle: "Round 4 · intersections, transit, sports, filmed here",
+    date: "October 20, 2025",
+    author: "Praveen Gupta",
+    kind: "board",
   },
   {
     slug: "2026-06-15-rvt-trivia",
