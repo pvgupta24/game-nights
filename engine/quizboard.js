@@ -106,7 +106,7 @@ function deepMerge(base, over) {
 function defaultAnswerNote() {
   return {
     heading: "Answer in the form of a question",
-    body: `Classic quiz-show rules: phrase every answer as a question — <b>"What is…?"</b> or <b>"Who is…?"</b>`,
+    body: `Classic quiz-show rules: phrase every answer as a question, like <b>"What is…?"</b> or <b>"Who is…?"</b>`,
     example: `e.g. "The 16th U.S. President" → "Who is Lincoln?"`,
   };
 }
@@ -116,7 +116,7 @@ function defaultRuleItems(cfg) {
     { num: "1", text: `Teams on their turn pick a category and a points value. <small>Higher value = tougher question.</small>` },
     { num: "2", text: `Direct question: answer within <b>${d}</b> seconds. No penalty for a wrong guess.` },
     { num: "3", text: `Miss it and it bounces to the other teams in order to steal. A wrong first steal <b>costs</b> that team <b>${pct}%</b> of the value; steals after that carry no penalty.` },
-    { num: "4", text: `Some questions carry a <b>bonus</b> — free to attempt, no penalty.` },
+    { num: "4", text: `Some questions carry a <b>bonus</b>: free to attempt, no penalty.` },
     { num: "★", text: `Trash-talk? <b>Totally allowed.</b>` },
   ];
 }
@@ -307,7 +307,7 @@ function buildShell(cfg) {
         class="nrhint">seconds into the song</span></div>
     <h2>Notes</h2>
     <div style="font-size:.76rem; color:var(--ink-dim); line-height:1.6">
-      Team logos load from <b>assets/</b>. Everything — scores, played squares, teams, theme, timers, winner song —
+      Team logos load from <b>assets/</b>. Everything (scores, played squares, teams, theme, timers and winner song)
       auto-saves in this browser. Questions load from <b>config.js</b>; music clips load from <b>clips/</b>.
     </div>
   </div>`;
