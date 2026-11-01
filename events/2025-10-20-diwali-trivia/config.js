@@ -139,6 +139,8 @@ window.TRIVIA_CONFIG = {
      { v: 0, q: "Which UK city hosts the largest Diwali celebrations outside India, lighting up its Golden Mile?", a: "«Leicester»" },
      Songs the doc listed but the deck didn't use: Dil Hai Ki Maanta Nahin · Kiliye Kiliye ·
      Didi Tera Devar Deewana · Jab Koi Baat Bigad Jaaye · Navrai Majhi.
+     The doc also linked a ready-made "guess the old song in 5 seconds" round:
+     https://www.youtube.com/watch?v=pbNqG2mcMvg
   */
 
   teams: {
