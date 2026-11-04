@@ -16,9 +16,13 @@
    MEDIA: the deck's own pictures and clips are embedded in Google Slides,
    so these are stand-ins: the picture puzzles are redrawn (assets/rebus-*.svg),
    photos come from Wikimedia Commons (Special:FilePath redirects), and film,
-   TV and song clips are YouTube embeds. None of the links could be opened
-   from where this was written: play through once and swap anything that
-   looks wrong. A broken image just disappears from the slide.
+   TV and song clips are YouTube embeds (famous scenes where one exists,
+   songs started near the hook). None of the links could be opened from
+   where this was written, so before the night:
+     python tools/check-media.py --event 2025-10-20-diwali-trivia
+   lists any video that is gone or won't embed, and any broken image. In the
+   game a failing video says why, and [ ] nudges an answer video's start
+   (Settings → "Copy video starts" turns your nudges into a ytStarts block).
    Song clips: local clips/*.mp3 win when present (python tools/yt-download.py
    --event 2025-10-20-diwali-trivia, or drop in the originals from the Drive
    "Assets/Diwali Trivia" folder under the names in songs.json).
@@ -32,7 +36,7 @@ const photo = name => COMMONS + name + "?width=960";
 window.TRIVIA_CONFIG = {
   meta: {
     slug: "2025-10-20-diwali-trivia",
-    version: 2,
+    version: 3,
     mode: "quizdeck",
     pageTitle: "Diwali Trivia · October 2025",
     title: "DIWALI",
@@ -46,7 +50,6 @@ window.TRIVIA_CONFIG = {
 
   timers: { question: 60, steal: 0, marker: "🪔" },
   scoring: { points: 100, stealPenaltyRatio: 0.5 },
-  flow: { revealOnNext: true },
   theme: { default: "diya" },
 
   rounds: [
@@ -58,7 +61,6 @@ window.TRIVIA_CONFIG = {
         {
           q: "In South India, Diwali mainly celebrates the defeat of demon king X by Lord Y, which freed 16,000 people held captive. Identify X and Y.",
           a: "X: «Narakasura» · Y: Lord «Krishna»",
-          parts: [{ label: "X", points: 50 }, { label: "Y", points: 50 }],
           img: photo("Krishna_Cleaves_the_Demon_Narakasura_with_his_Discus.jpg"),
         },
         {
@@ -96,48 +98,43 @@ window.TRIVIA_CONFIG = {
     },
     {
       title: "Bollywood & Songs",
-      blurb: "Two film questions, then name that tune.",
+      blurb: "Two film questions, then name that tune: song and artist for full marks, one of them for half.",
       points: 100,
       questions: [
         {
           q: "The Hindi film X is a remake of the 1989 Malayalam film <em>Ramji Rao Speaking</em>, about a popular trio. Who was originally cast as one of the trio but dropped out because of court hearings?",
           a: "<em>«Hera Pheri»</em>: «Sanjay Dutt», as Shyam",
-          yt: { id: "5FXFnyRnl48", start: 0 },   // a Baburao scene from Hera Pheri (2000)
+          yt: { id: "obPAvceI8FM", start: 0 },   // "Utha le re baba", Baburao's famous scene
         },
         {
           q: "\"12th Fail\" was a popular 2023 Hindi movie based on the real-life story of IPS officer Manoj Kumar Sharma. What was the a) occupation and b) name of Manoj's wife?",
           a: "a) «IRS officer» · b) «Shraddha Joshi»",
-          parts: [{ label: "Occupation", points: 50 }, { label: "Name", points: 50 }],
-          yt: { id: "3UlcKOZc41o", start: 0 },   // official trailer
+          note: "Both right: full marks. One right: half (Alt).",
+          yt: { id: "EK0PkJZAiSc", start: 30 },   // "Restart", the film's anthem
         },
         {
           q: "Identify the song and the artist.", a: "«Khairiyat» by «Arijit Singh» (<em>Chhichhore</em>, 2019)",
-          parts: [{ label: "Song", points: 50 }, { label: "Artist", points: 20 }],
           audio: "clips/khairiyat.mp3",
-          ytAudio: { id: "hoNb6HuNmU0", start: 15, duration: 12 },
+          ytAudio: { id: "hoNb6HuNmU0", start: 15, duration: 12 },   // 0:15, where the Drive clip started
           yt: { id: "hoNb6HuNmU0", start: 15 },
         },
         {
           q: "Identify the song and the artist.", a: "«Kya Khoob Lagti Ho» by «Mukesh» (with Kanchan), <em>Dharmatma</em> (1975)",
-          parts: [{ label: "Song", points: 50 }, { label: "Artist", points: 20 }],
-          note: "The 2025 deck scored this one 5 for the song and 2 for the artist; every song here uses the same split.",
           audio: "clips/kya-khoob-lagti-ho.mp3",
           ytAudio: { id: "A_vcoAPoprg", start: 0, duration: 12 },
-          yt: { id: "A_vcoAPoprg", start: 0 },
+          yt: { id: "A_vcoAPoprg", start: 12 },
         },
         {
           q: "Identify the song and the artist.", a: "«Lamha Lamha» (<em>Gangster</em>, 2006): music by «Pritam», sung by «Abhijeet» and «Sunidhi Chauhan»",
-          parts: [{ label: "Song", points: 50 }, { label: "Artist", points: 20 }],
           audio: "clips/lamha-lamha.mp3",
           ytAudio: { id: "CApsy8SR3k0", start: 20, duration: 12 },
           yt: { id: "CApsy8SR3k0", start: 20 },
         },
         {
           q: "Identify the song and the artist.", a: "«Pretty Woman» by «Shankar Mahadevan» (<em>Kal Ho Naa Ho</em>, 2003)",
-          parts: [{ label: "Song", points: 50 }, { label: "Artist", points: 20 }],
           audio: "clips/pretty-woman.mp3",
           ytAudio: { id: "70QpN7DvaK4", start: 0, duration: 12 },
-          yt: { id: "70QpN7DvaK4", start: 0 },
+          yt: { id: "70QpN7DvaK4", start: 15 },
         },
       ]
     },
@@ -177,20 +174,20 @@ window.TRIVIA_CONFIG = {
         },
         {
           cat: "🎬 Filmed Here", clues: [
-            { v: 200, q: "Filmed in Vancouver: an invincible, burnt man seeks his revenge on a twisted experimenter.", a: "«Deadpool»", yt: { id: "ONHBaC-pfsk", start: 0 } },
-            { v: 400, q: "Filmed in Vancouver: a crocodile, a coach and a Sandler collide in this comedy.", a: "«Happy Gilmore»", yt: { id: "8MVpWIR-Wlg", start: 0 } },
-            { v: 600, q: "Filmed in Vancouver: the strongest man alive comes to Earth in this DC film.", a: "«Man of Steel»", yt: { id: "QD-Cg64GuvI", start: 0 } },
-            { v: 800, q: "Filmed in Vancouver: Dwayne Johnson stars in this high-flying action movie.", a: "«Skyscraper»", yt: { id: "IvmdClUU1F4", start: 0 } },
-            { v: 1000, q: "Filmed in Vancouver: Ethan Hunt and his colleagues go rogue in this action film, the fourth in its series.", a: "«Mission: Impossible, Ghost Protocol»", yt: { id: "EDGYVFZxsXQ", start: 0 } },
+            { v: 200, q: "Filmed in Vancouver: an invincible, burnt man seeks his revenge on a twisted experimenter.", a: "«Deadpool»", yt: { id: "Sy8nPI85Ih4", start: 0 } },   // the "Maximum Effort" highway fight, shot on the Georgia Viaduct
+            { v: 400, q: "Filmed in Vancouver: a crocodile, a coach and a Sandler collide in this comedy.", a: "«Happy Gilmore»", yt: { id: "idrFvuj7__w", start: 0 } },   // the Bob Barker fight
+            { v: 600, q: "Filmed in Vancouver: the strongest man alive comes to Earth in this DC film.", a: "«Man of Steel»", yt: { id: "4KoMJ0gC4Vc", start: 0 } },   // first flight
+            { v: 800, q: "Filmed in Vancouver: Dwayne Johnson stars in this high-flying action movie.", a: "«Skyscraper»", yt: { id: "KMkdp0Uy8t0", start: 0 } },   // the crane jump
+            { v: 1000, q: "Filmed in Vancouver: Ethan Hunt and his colleagues go rogue in this action film, the fourth in its series.", a: "«Mission: Impossible, Ghost Protocol»", yt: { id: "Mus6yzV23eo", start: 0 } },   // the Burj Khalifa climb
           ]
         },
         {
           cat: "📺 TV Filmed Here", clues: [
-            { v: 200, q: "John Cena stars as a peace-obsessed antihero in this HBO Max series, which filmed its action-packed scenes in Vancouver, including fights in abandoned warehouses.", a: "«Peacemaker»", yt: { id: "YBRgXdHEwB4", start: 0 } },
-            { v: 400, q: "Grant Gustin sped through Vancouver's streets as Barry Allen in this CW series about a forensic scientist who gains super speed after a particle accelerator explosion.", a: "«The Flash»", yt: { id: "Wf6WfQdZ39g", start: 0 } },
-            { v: 600, q: "Tom Ellis played the charming devil who leaves Hell for Los Angeles in this series, which was shot in Vancouver, using local soundstages for the nightclub scenes.", a: "«Lucifer»", yt: { id: "7o9Z2YWhuiE", start: 0 } },
-            { v: 800, q: "Fairy tale characters like Snow White and Rumplestiltskin live in the modern world in this ABC show, with Vancouver's Steveston village doubling as Storybrooke.", a: "«Once Upon a Time»", yt: { id: "15__iA1MTqc", start: 0 } },
-            { v: 1000, q: "Walker Scobell stars as a young demigod in this Disney+ adaptation of Rick Riordan's books, whose third season was filming in Vancouver's studios and forests in October 2025.", a: "«Percy Jackson and the Olympians»", yt: { id: "9-V2JRBeSDg", start: 0 } },
+            { v: 200, q: "John Cena stars as a peace-obsessed antihero in this HBO Max series, which filmed its action-packed scenes in Vancouver, including fights in abandoned warehouses.", a: "«Peacemaker»", yt: { id: "Fl3JJPVVH4Y", start: 0 } },   // the opening-credits dance
+            { v: 400, q: "Grant Gustin sped through Vancouver's streets as Barry Allen in this CW series about a forensic scientist who gains super speed after a particle accelerator explosion.", a: "«The Flash»", yt: { id: "WLuO21gwdQI", start: 0 } },   // "my name is Barry Allen…"
+            { v: 600, q: "Tom Ellis played the charming devil who leaves Hell for Los Angeles in this series, which was shot in Vancouver, using local soundstages for the nightclub scenes.", a: "«Lucifer»", yt: { id: "sOYaLWVF-54", start: 0 } },   // "what do you desire?"
+            { v: 800, q: "Fairy tale characters like Snow White and Rumplestiltskin live in the modern world in this ABC show, with Vancouver's Steveston village doubling as Storybrooke.", a: "«Once Upon a Time»", yt: { id: "3cP5LGVzXWA", start: 0 } },   // the clock starts ticking in Storybrooke
+            { v: 1000, q: "Walker Scobell stars as a young demigod in this Disney+ adaptation of Rick Riordan's books, whose third season was filming in Vancouver's studios and forests in October 2025.", a: "«Percy Jackson and the Olympians»", yt: { id: "9-V2JRBeSDg", start: 0 } },   // trailer
           ]
         },
       ]
@@ -209,12 +206,12 @@ window.TRIVIA_CONFIG = {
           // the doc listed only "Bahubali ne Katappa ko kyu maara", read here as a fix-the-quote question
           q: "Fix this famous line: \"Baahubali ne Kattappa ko kyun maara?\"",
           a: "\"«Kattappa» ne «Baahubali» ko kyun maara?\" (Why did Kattappa kill Baahubali?)",
-          yt: { id: "8uw0vW_eolo", start: 0 },   // Baahubali 2 trailer
+          yt: { id: "k2kx47Kg1ao", start: 0 },   // the moment Kattappa strikes
         },
         {
           q: "X is a fictional film about the 1999 Kargil War, directed by Farhan Akhtar. Near the end, the battalion is sent to capture Y Hill, also called Point Z. Name X, Y and Z.",
           a: "«Lakshya» · «Tiger» Hill · Point «5179»",
-          yt: { id: "8DMF0U6xV78", start: 0 },   // Lakshya title track
+          yt: { id: "8DMF0U6xV78", start: 50 },   // Lakshya title track, near the hook
         },
       ]
     },
@@ -270,7 +267,7 @@ window.TRIVIA_CONFIG = {
     answerNote: {
       heading: "Five rounds, one scoreboard",
       body: `Diwali · Rapid Fire · Bollywood & Songs · a Vancouver quiz board · and Extra Time if we need a tie-breaker.`,
-      example: `Some questions score in parts: 50 for the song, 20 for the artist 🎶`,
+      example: `Half an answer right? Half marks. Song and artist both? Full marks 🎶`,
     },
     items: [
       { num: "1", text: `Questions go to each team in turn. <b>60</b> seconds to answer; rapid fire gets <b>15</b>.` },

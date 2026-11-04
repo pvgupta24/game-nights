@@ -68,11 +68,12 @@ const DEFAULTS = {
   },
   timers: { question: 45, steal: 0, marker: "clock" },   // per round: round.timer / round.steal; 0 = no clock
   scoring: { points: 100, stealPenaltyRatio: 0.5 },      // default points per question; a deduction costs this fraction
-  flow: { revealOnNext: true },                          // → on an unanswered question reveals the answer first
+  flow: { revealOnNext: false },                         // true: → shows the answer before moving on (A always does)
   theme: { default: "noir" },
   rounds: [],
   teams: { default: null, presets: [] },
   celebrations: { default: null, songs: [] },
+  ytStarts: {},           // { videoId: seconds } answer-video starts that win over a question's yt.start (Settings → copy)
   rules: { openOnLoad: true, answerNote: null, items: null },
   winner: { label: "🏆 Champions!!" },
 };
@@ -82,7 +83,9 @@ let CFG, KEY, SLIDES, STEAL_RATIO;
 let PRESET_LIST, PRESETS, DEFAULT_PRESET;
 let CELEBS, DEFAULT_CELEB;
 let state, current = null;
-let audioEl, audioMode = null, ytClip = null, ytAudioFrame = null, ytAudioTimer = null;
+let showing = false;   // answer visible on the current visit; every visit opens on the question side
+let audioEl, audioMode = null, ytClip = null, ytAudioFrame = null, ytAudioTimer = null, ytClipHandle = null;
+let answerYt = null, winnerYt = null;   // YouTube players (engine/youtube.js) for the answer video and the winner song
 let timer = { phase: null, total: 0, elapsed: 0, last: 0, int: null, paused: false };
 let confettiRAF = null;
 
@@ -105,7 +108,7 @@ function defaultAnswerNote(cfg) {
   return {
     heading: "Round by round",
     body: `${cfg.rounds.length} rounds, one running scoreboard. Points go up after every answer.`,
-    example: `Some questions score in parts, like the song and the artist.`,
+    example: `Part of an answer right? Half marks.`,
   };
 }
 function defaultRuleItems(cfg) {
@@ -127,6 +130,7 @@ function normalizeConfig(raw) {
   cfg.rules.items = cfg.rules.items || defaultRuleItems(cfg);
   cfg.teams.presets = cfg.teams.presets || [];
   cfg.celebrations.songs = cfg.celebrations.songs || [];
+  cfg.ytStarts = cfg.ytStarts || {};
   return cfg;
 }
 
@@ -148,14 +152,11 @@ function clueOf(ref) {
   const r = CFG.rounds[ref.ri];
   return ref.ci == null ? r.questions[ref.qi] : r.categories[ref.ci].clues[ref.qi];
 }
-// a question scores as one part, or several (e.g. song + artist), each awarded on its own row
-function partsOf(ref) {
+// a question's value: board clues carry v; deck questions their own points, the round's, or the default
+function valueOf(ref) {
   const r = CFG.rounds[ref.ri], q = clueOf(ref);
-  if (Array.isArray(q.parts) && q.parts.length) return q.parts.map(p => ({ label: p.label || "", points: p.points }));
-  const pts = q.v ?? q.points ?? r.points ?? CFG.scoring.points;
-  return [{ label: "", points: pts }];
+  return q.v ?? q.points ?? r.points ?? CFG.scoring.points;
 }
-function totalPoints(ref) { return partsOf(ref).reduce((n, p) => n + p.points, 0); }
 function activeRef() {
   if (state.open) return state.open;
   const s = SLIDES[state.pos];
@@ -217,15 +218,15 @@ function buildShell(cfg) {
     <div id="stage"></div>
 
     <div id="dfoot">
-      <div class="awards" id="awardRows"></div>
+      <div class="awards award" id="awardRows"></div>
       <div class="dnav">
         <button class="abtn" onclick="prev()">← Back</button>
         <button class="abtn primary" id="nextBtn" onclick="next()">Next →</button>
         <button class="abtn" id="btnAns" onclick="revealAnswer()">Answer · A</button>
         <button class="abtn" id="btnClue" onclick="revealClue()">Clue · C</button>
         <button class="abtn" id="btnClip" onclick="toggleAudio()">▶ Clip · M</button>
-        <span class="legend"><b>← →</b> move&nbsp;·&nbsp;<b>A</b> answer&nbsp;·&nbsp;<b>1-8</b> award&nbsp;·&nbsp;<b>⇧1-8</b>
-          deduct&nbsp;·&nbsp;<b>Space</b> pause&nbsp;·&nbsp;<b>O</b> rounds</span>
+        <span class="legend"><b>← →</b> move&nbsp;·&nbsp;<b>A</b> answer&nbsp;·&nbsp;<b>1-8</b> full&nbsp;·&nbsp;<b>Alt</b>
+          half&nbsp;·&nbsp;<b>⇧</b> wrong&nbsp;·&nbsp;<b>[ ]</b> video start&nbsp;·&nbsp;<b>O</b> rounds</span>
       </div>
     </div>
 
@@ -284,6 +285,7 @@ function buildShell(cfg) {
         </div>
       </div>
       <div class="wvideo" id="wVideo"></div>
+      <div class="wvnote" id="wVidNote"></div>
     </div>
   </div>
 
@@ -305,6 +307,10 @@ function buildShell(cfg) {
     <div class="themePick" id="celebPick"></div>
     <div class="numrow">start <input type="number" id="cfgCelebStart" min="0" max="6000"> <span
         class="nrhint">seconds into the song</span></div>
+    <h2>Answer video starts</h2>
+    <div class="numrow"><button class="abtn" onclick="copyYtStarts()">Copy video starts</button>
+      <span class="nrhint" id="ytStartsHint">nudge a video with [ ] while it plays</span></div>
+    <textarea class="ytout" id="ytStartsOut" readonly hidden></textarea>
     <h2>Notes</h2>
     <div style="font-size:.76rem; color:var(--ink-dim); line-height:1.6">
       Use <b>← →</b> or a presenter clicker to move through the deck. Everything (scores, answers shown,
@@ -388,8 +394,8 @@ function fmt(s, kw) {
 function imgsHtml(srcs) {
   return srcs.map(src => `<img src="${esc(src)}" alt="" onerror="this.remove()">`).join("");
 }
-function ytHtml(yt) {
-  return `<div class="ytwrap on"><iframe src="https://www.youtube-nocookie.com/embed/${yt.id}?start=${yt.start || 0}&autoplay=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media" allowfullscreen></iframe></div>`;
+function ytHtml() {
+  return `<div class="ytwrap on" id="dqYt"></div><div class="ytnudge" id="dqNudge"></div>`;
 }
 
 /* ============ render ============ */
@@ -513,18 +519,18 @@ function wireBoard(ri, root) {
 
 function questionHtml(ref) {
   const r = CFG.rounds[ref.ri], q = clueOf(ref), key = refKey(ref);
-  const shown = !!state.revealed[key];
-  const parts = partsOf(ref);
+  const shown = showing;
+  const played = !!state.revealed[key];
   const eyebrow = ref.ci == null
     ? `${esc(r.title)} · Question ${ref.qi + 1} of ${r.questions.length}`
     : `${esc(r.categories[ref.ci].cat)}`;
-  const pts = parts.length > 1 ? parts.map(p => `${esc(p.label)} ${p.points}`).join(" + ") : `${parts[0].points} pts`;
+  const pts = `${valueOf(ref)} pts`;
   const hasMedia = list(q.qImg).length || list(q.img).length || q.yt;
   const media = mediaHtml(q, shown);
   const multi = media.count > 1;
   return `<div class="dslide dq${hasMedia ? " withMedia" : ""}${shown ? " shown" : ""}">
     <div class="dq-main">
-      <div class="dq-eyebrow"><span>${eyebrow}</span><span class="dq-pts">${pts}</span></div>
+      <div class="dq-eyebrow"><span>${eyebrow}</span><span class="dq-pts">${pts}</span>${played ? `<span class="dq-played">↺ played</span>` : ""}</div>
       <div class="oq dq-q">${fmt(q.q, true)}</div>
       <div class="oaudio" id="oAudio">
         <button id="audioBtn" onclick="toggleAudio()">▶</button>
@@ -539,7 +545,7 @@ function questionHtml(ref) {
 }
 // question images until the answer is shown, then the answer's video or images
 function mediaHtml(q, shown) {
-  if (shown && q.yt) return { html: ytHtml(q.yt), count: 0 };
+  if (shown && q.yt) return { html: ytHtml(), count: 0 };
   const aMedia = list(q.img), qMedia = list(q.qImg);
   const srcs = shown && aMedia.length ? aMedia : qMedia;
   return {
@@ -570,7 +576,7 @@ function renderFoot() {
   const ref = activeRef();
   $("dfoot").classList.toggle("onQ", !!ref);
   $("nextBtn").textContent = state.open ? "Back to board →"
-    : ref && CFG.flow.revealOnNext && !state.revealed[refKey(ref)] ? "Show answer →" : "Next →";
+    : ref && CFG.flow.revealOnNext && !showing ? "Show answer →" : "Next →";
   if (!ref) { $("awardRows").innerHTML = ""; return; }
   const q = clueOf(ref);
   $("btnClue").style.display = q.clue ? "" : "none";
@@ -617,38 +623,32 @@ function editScore(i) {
 }
 function refreshEnd() { if (SLIDES[state.pos].type === "end" && !state.open) renderStage(); }   // in place, no fade
 
-/* ============ awards: one row per scoring part, ± per team ============ */
+/* ============ awards: one row, a mark per team ============ */
+// 1 = full value · 0.5 = half (Alt) · -1 = wrong, costing stealPenaltyRatio of the value (Shift)
+function markFrom(e) { return e.shiftKey ? -1 : e.altKey ? 0.5 : 1; }
 function renderAwards() {
   const ref = activeRef(); if (!ref) return;
-  const key = refKey(ref);
-  const parts = partsOf(ref);
-  const marks = state.awarded[key] || [];
-  const wrap = $("awardRows"); wrap.innerHTML = "";
-  parts.forEach((p, pi) => {
-    const row = document.createElement("div"); row.className = "award";
-    const lab = `${p.label ? p.label + " " : ""}+${p.points} / −${Math.round(p.points * STEAL_RATIO)} →`;
-    row.innerHTML = `<span class="alab">${esc(lab)}</span>`;
-    state.teams.forEach((t, i) => {
-      const b = document.createElement("button");
-      const s = (marks[pi] || {})[i] || 0;
-      b.className = "chip" + (s > 0 ? " plus" : s < 0 ? " minus" : "");
-      b.style.setProperty("--tc", t.color);
-      b.textContent = (s > 0 ? "+" : s < 0 ? "−" : "") + t.name;
-      b.onclick = e => toggleAward(ref, pi, i, e.shiftKey ? -1 : 1);
-      row.appendChild(b);
-    });
-    wrap.appendChild(row);
+  const v = valueOf(ref);
+  const marks = state.awarded[refKey(ref)] || {};
+  const row = $("awardRows");
+  row.innerHTML = `<span class="alab">+${v} · ½ ${Math.round(v / 2)} · −${Math.round(v * STEAL_RATIO)} →</span>`;
+  state.teams.forEach((t, i) => {
+    const b = document.createElement("button");
+    const s = marks[i] || 0;
+    b.className = "chip" + (s === 1 ? " plus" : s > 0 ? " half" : s < 0 ? " minus" : "");
+    b.style.setProperty("--tc", t.color);
+    b.textContent = (s === 1 ? "+" : s > 0 ? "½ " : s < 0 ? "−" : "") + t.name;
+    b.onclick = e => toggleAward(ref, i, markFrom(e));
+    row.appendChild(b);
   });
 }
-// award the part's full value, but a deduction (wrong answer or steal) is only stealPenaltyRatio of it
-function awardDelta(dir, val) { return dir > 0 ? val : -Math.round(val * STEAL_RATIO); }
-function toggleAward(ref, pi, i, dir) {
-  const key = refKey(ref), val = partsOf(ref)[pi].points;
-  const marks = state.awarded[key] = state.awarded[key] || [];
-  const map = marks[pi] = marks[pi] || {};
-  const prevDir = map[i] || 0;
-  if (prevDir) state.teams[i].score -= awardDelta(prevDir, val);
-  map[i] = (prevDir === dir) ? 0 : dir;
+function awardDelta(mark, val) { return mark > 0 ? Math.round(val * mark) : -Math.round(val * STEAL_RATIO); }
+function toggleAward(ref, i, mark) {
+  const val = valueOf(ref);
+  const map = state.awarded[refKey(ref)] = state.awarded[refKey(ref)] || {};
+  const prev = map[i] || 0;
+  if (prev) state.teams[i].score -= awardDelta(prev, val);
+  map[i] = (prev === mark) ? 0 : mark;
   if (map[i]) state.teams[i].score += awardDelta(map[i], val);
   else delete map[i];
   save(); renderRail(); renderAwards();
@@ -658,7 +658,7 @@ function toggleAward(ref, pi, i, dir) {
 function next() {
   if (state.open) { closeBoardClue(); return; }
   const ref = activeRef();
-  if (ref && CFG.flow.revealOnNext && !state.revealed[refKey(ref)]) { revealAnswer(); return; }
+  if (ref && CFG.flow.revealOnNext && !showing) { revealAnswer(); return; }
   go(state.pos + 1);
 }
 function prev() {
@@ -683,7 +683,11 @@ function closeBoardClue() {
   state.open = null;
   save(); renderNav({ dir: -1, calm: true });
 }
-function leaveSlide() { stopAudio(); stopTimer(); current = null; }
+function leaveSlide() {
+  stopAudio(); stopTimer();
+  if (answerYt) { answerYt.stop(); answerYt = null; }
+  current = null; showing = false;
+}
 function enterSlide() {
   const ref = activeRef();
   if (!ref) return;
@@ -695,7 +699,8 @@ function enterSlide() {
 function revealAnswer() {
   const ref = activeRef(); if (!ref) return;
   const key = refKey(ref);
-  if (state.revealed[key]) return;
+  if (showing) return;
+  showing = true;
   state.revealed[key] = true;
   save();
   stopTimer();
@@ -709,9 +714,53 @@ function revealAnswer() {
     if (box && (q.yt || list(q.img).length)) {
       const m = mediaHtml(q, true);
       box.innerHTML = m.html; box.classList.toggle("multi", m.count > 1);
+      if (q.yt) embedAnswerYt();
     }
   }
   renderBar(); renderFoot();
+}
+
+/* ============ answer-video start: nudge it live, keep it, copy it into config ============ */
+// a nudged start (saved in this browser) wins over config ytStarts, which wins over the question's yt.start
+function ytStart(yt) {
+  const own = state.ytStart && state.ytStart[yt.id];
+  return own != null ? own : (CFG.ytStarts[yt.id] ?? yt.start ?? 0);
+}
+function mmss(sec) { return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`; }
+function embedAnswerYt() {
+  const yt = current && clueOf(current.ref).yt, box = $("dqYt");
+  if (!yt || !box) return;
+  const start = ytStart(yt);
+  if (answerYt) answerYt.stop();
+  answerYt = ytMount(box, { id: yt.id, start, onStatus: (kind, text) => renderYtNote(yt, start, kind, text) });
+}
+// under the answer video: where it starts and how to nudge it, or why it isn't playing
+function renderYtNote(yt, start, kind, text) {
+  const note = $("dqNudge"); if (!note) return;
+  const bad = kind === "error" || kind === "stalled";
+  note.className = "ytnudge" + (bad ? " bad" : "");
+  note.innerHTML = bad
+    ? `⚠ ${esc(text)} · <a href="${ytWatchUrl(yt.id, start)}" target="_blank" rel="noopener">open on YouTube</a>`
+    : `video from <b>${mmss(start)}</b>${kind === "loading" ? " · loading…" : ""}
+      <button onclick="nudgeYt(-10)">−10s</button><button onclick="nudgeYt(10)">+10s</button>
+      <span class="k">[ ] nudge · saved in this browser</span>`;
+}
+function nudgeYt(d) {
+  const yt = current && showing && clueOf(current.ref).yt;
+  if (!yt || !answerYt) return;
+  state.ytStart = state.ytStart || {};
+  state.ytStart[yt.id] = Math.max(0, ytStart(yt) + d);
+  save(); embedAnswerYt();
+}
+function copyYtStarts() {
+  const own = state.ytStart || {};
+  const text = `ytStarts: ${JSON.stringify({ ...CFG.ytStarts, ...own }, null, 2)},`;
+  const out = $("ytStartsOut"), hint = $("ytStartsHint");
+  out.value = text; out.hidden = false; out.select();
+  const manual = () => { hint.textContent = "select the text below and copy it into config.js"; };
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => { hint.textContent = `${Object.keys(own).length} nudged · copied, paste into config.js`; }, manual);
+  } else manual();
 }
 function revealClue() { if (current && clueOf(current.ref).clue) $("oClue").classList.add("shown"); }
 
@@ -755,6 +804,7 @@ function renderOverview() {
 function setupAudio(clue) {
   if (audioEl) { audioEl.pause(); audioEl.currentTime = 0; }
   if (ytAudioTimer) { clearTimeout(ytAudioTimer); ytAudioTimer = null; }
+  if (ytClipHandle) { ytClipHandle.stop(); ytClipHandle = null; }
   if (ytAudioFrame) { ytAudioFrame.remove(); ytAudioFrame = null; }
   audioMode = null; ytClip = null;
 
@@ -799,20 +849,33 @@ function toggleYtAudio() {
   const holder = document.createElement("div");
   // present + audible but visually out of the way (a covered snippet player)
   holder.style.cssText = "position:fixed; left:8px; bottom:8px; width:180px; height:101px; opacity:.02; pointer-events:none; z-index:60; overflow:hidden; border-radius:8px";
-  holder.innerHTML = `<iframe width="180" height="101"
-      src="https://www.youtube-nocookie.com/embed/${id}?start=${start || 0}&autoplay=1&controls=0&rel=0&modestbranding=1&playsinline=1"
-      allow="autoplay; encrypted-media" frameborder="0"></iframe>`;
   document.body.appendChild(holder);
   ytAudioFrame = holder;
-  btn.textContent = "⏸"; meta.className = "meta playing"; meta.textContent = "🎵 playing…";
-  if (duration) ytAudioTimer = setTimeout(stopYtAudio, duration * 1000);
+  btn.textContent = "⏸";
+  // the label follows what the player really does: loading → playing, or why it can't
+  ytClipHandle = ytMount(holder, {
+    id, start, controls: false, stallText: "hasn't started: check the internet connection",
+    onStatus: (kind, text) => {
+      if (kind === "loading") { meta.className = "meta"; meta.textContent = "clip · loading…"; }
+      else if (kind === "playing") {
+        meta.className = "meta playing"; meta.textContent = "🎵 playing…";
+        if (duration && !ytAudioTimer) ytAudioTimer = setTimeout(stopYtAudio, duration * 1000);   // count from the first sound
+      } else if (kind === "error" || kind === "stalled") {
+        if (kind === "error") stopYtAudio();
+        meta.className = "meta missing";
+        meta.innerHTML = `⚠ clip ${esc(text)} · <a href="${ytWatchUrl(id, start)}" target="_blank" rel="noopener">open on YouTube</a>`;
+        btn.textContent = "▶";
+      }
+    },
+  });
 }
 function stopYtAudio() {
   if (ytAudioTimer) { clearTimeout(ytAudioTimer); ytAudioTimer = null; }
+  if (ytClipHandle) { ytClipHandle.stop(); ytClipHandle = null; }
   if (ytAudioFrame) { ytAudioFrame.remove(); ytAudioFrame = null; }
   const btn = $("audioBtn"), meta = $("audioMeta");
   if (btn) btn.textContent = "▶";
-  if (meta && audioMode === "yt") { meta.className = "meta"; meta.textContent = "clip · YouTube"; }
+  if (meta && audioMode === "yt" && !meta.classList.contains("missing")) { meta.className = "meta"; meta.textContent = "clip · YouTube"; }
 }
 function stopAudio() {
   if (audioEl) { audioEl.pause(); audioEl.currentTime = 0; }
@@ -941,13 +1004,20 @@ function openWinner() {
   stopAudio(); stopTimer();
   const key = CELEBS[state.celebration] ? state.celebration : DEFAULT_CELEB;
   const c = CELEBS[key];
-  $("wVideo").innerHTML = c
-    ? `<iframe src="https://www.youtube-nocookie.com/embed/${c.yt}?start=${celebStartFor(key) || 0}&autoplay=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`
-    : "";
+  if (winnerYt) { winnerYt.stop(); winnerYt = null; }
+  $("wVidNote").textContent = "";
+  if (c) winnerYt = ytMount($("wVideo"), {
+    id: c.yt, start: celebStartFor(key) || 0,
+    onStatus: (kind, text) => { $("wVidNote").textContent = kind === "error" || kind === "stalled" ? `⚠ winner song ${text}` : ""; },
+  });
   $("winner").classList.add("open");
   startConfetti();
 }
-function closeWinner() { $("winner").classList.remove("open"); $("wVideo").innerHTML = ""; stopConfetti(); }
+function closeWinner() {
+  $("winner").classList.remove("open");
+  if (winnerYt) { winnerYt.stop(); winnerYt = null; }
+  stopConfetti();
+}
 function startConfetti() {
   const cv = $("confetti"), ctx = cv.getContext("2d");
   const dpr = window.devicePixelRatio || 1;
@@ -1109,12 +1179,15 @@ function onKeydown(e) {
     case k === "g": toggleSettings(); break;
     case k === "w": openWinner(); break;
     case k === "y": cycleTheme(); break;
-    case /^[1-8!@#$%^&*]$/.test(e.key): {
+    case e.key === "[": nudgeYt(-10); break;
+    case e.key === "]": nudgeYt(10); break;
+    case e.key === "{": nudgeYt(-1); break;
+    case e.key === "}": nudgeYt(1); break;
+    case /^Digit[1-8]$/.test(e.code): {   // by key position, so Shift / Alt combos work on any layout
       const ref = activeRef(); if (!ref) break;
-      const sym = "!@#$%^&*".indexOf(e.key);
-      const i = sym >= 0 ? sym : +e.key - 1;
-      const neg = e.shiftKey || sym >= 0;
-      if (i < state.teams.length) toggleAward(ref, 0, i, neg ? -1 : 1);
+      const i = +e.code.slice(5) - 1;
+      if (i < state.teams.length) toggleAward(ref, i, markFrom(e));
+      e.preventDefault();
       break;
     }
   }

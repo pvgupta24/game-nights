@@ -1765,6 +1765,98 @@
       font-family: "JetBrains Mono", monospace;
     }
 
+    /* ============ half marks (Alt) ============ */
+    .chip.half {
+      background: color-mix(in oklch, var(--tc) 30%, transparent);
+      border-color: var(--tc);
+      color: var(--ink);
+    }
+
+    /* ============ YouTube status: where a video starts, or why it isn't playing ============ */
+    .ytnudge {
+      flex: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: .45rem;
+      width: 100%;
+      font-family: "JetBrains Mono", monospace;
+      font-size: .66rem;
+      letter-spacing: .08em;
+      color: var(--ink-dim);
+    }
+
+    .ytnudge:empty {
+      display: none;
+    }
+
+    .ytnudge b {
+      color: var(--ink);
+    }
+
+    .ytnudge button {
+      font: inherit;
+      color: var(--ink);
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: .2rem .5rem;
+      cursor: pointer;
+    }
+
+    .ytnudge button:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .ytnudge .k {
+      opacity: .7;
+    }
+
+    .ytnudge.bad,
+    .wvnote {
+      color: var(--danger);
+      font-weight: 700;
+      font-size: .78rem;
+      letter-spacing: .02em;
+    }
+
+    .ytnudge a,
+    .oaudio .meta a {
+      color: inherit;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .oaudio .meta.missing {
+      text-transform: none;
+      letter-spacing: .02em;
+      font-size: .74rem;
+    }
+
+    .wvnote {
+      margin-top: .5rem;
+      text-align: center;
+    }
+
+    .wvnote:empty {
+      display: none;
+    }
+
+    .ytout {
+      width: 100%;
+      min-height: 7rem;
+      resize: vertical;
+      background: var(--panel-2);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: .7rem;
+      padding: .5rem;
+    }
+
     /* ============ small screens — minor fixes ============
        (a proper participant "view mode" for phones is on the roadmap;
        these just keep the host board usable on a small window) */

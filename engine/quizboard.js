@@ -76,6 +76,7 @@ const DEFAULTS = {
   categories: [],
   teams: { default: null, presets: [] },
   celebrations: { default: null, songs: [] },
+  ytStarts: {},           // { videoId: seconds } answer-video starts that win over a clue's yt.start (Settings → copy)
   rules: { openOnLoad: true, answerNote: null, items: null },
   winner: { label: "🏆 Champions!!" },
 };
@@ -85,7 +86,8 @@ let CFG, KEY, ROWS, BONUS_VALUE, STEAL_RATIO;
 let PRESET_LIST, PRESETS, DEFAULT_PRESET;
 let CELEBS, DEFAULT_CELEB;
 let state, current = null, awards = {}, bonusAwards = {};
-let audioEl, audioMode = null, ytClip = null, ytAudioFrame = null, ytAudioTimer = null;
+let audioEl, audioMode = null, ytClip = null, ytAudioFrame = null, ytAudioTimer = null, ytClipHandle = null;
+let answerYt = null, winnerYt = null;   // YouTube players (engine/youtube.js) for the answer video and the winner song
 let timer = { phase: null, total: 0, elapsed: 0, last: 0, int: null, paused: false };
 let winnerTeam = null, confettiRAF = null;
 
@@ -128,6 +130,7 @@ function normalizeConfig(raw) {
   cfg.rules.items = cfg.rules.items || defaultRuleItems(cfg);
   cfg.teams.presets = cfg.teams.presets || [];
   cfg.celebrations.songs = cfg.celebrations.songs || [];
+  cfg.ytStarts = cfg.ytStarts || {};
   return cfg;
 }
 
@@ -205,6 +208,7 @@ function buildShell(cfg) {
             <div class="ytwrap" id="aYt"></div>
             <img id="aImg" class="hidden" alt="">
           </div>
+          <div class="ytnudge" id="aNudge"></div>
           <div class="aval" id="aVal"></div>
         </div>
       </div>
@@ -231,8 +235,8 @@ function buildShell(cfg) {
         <button class="abtn" id="btnBonus" onclick="revealBonusQ()">Bonus · B</button>
         <button class="abtn" id="btnBonusA" onclick="revealBonusA()">Bonus Ans · N</button>
         <button class="abtn" id="btnClip" onclick="toggleAudio()">▶ Clip · M</button>
-        <span class="legend"><b>Space</b> pause&nbsp;·&nbsp;<b>1–6</b> award&nbsp;·&nbsp;<b>⇧1–6</b>
-          deduct&nbsp;·&nbsp;<b>M</b> clip</span>
+        <span class="legend"><b>Space</b> pause&nbsp;·&nbsp;<b>1-8</b> full&nbsp;·&nbsp;<b>Alt</b> half&nbsp;·&nbsp;<b>⇧</b>
+          wrong&nbsp;·&nbsp;<b>M</b> clip&nbsp;·&nbsp;<b>[ ]</b> video start</span>
       </div>
       <div class="award" id="awardMain"></div>
       <div class="award" id="awardBonus" style="display:none"></div>
@@ -281,6 +285,7 @@ function buildShell(cfg) {
         </div>
       </div>
       <div class="wvideo" id="wVideo"></div>
+      <div class="wvnote" id="wVidNote"></div>
     </div>
   </div>
 
@@ -305,6 +310,10 @@ function buildShell(cfg) {
     <div class="themePick" id="celebPick"></div>
     <div class="numrow">start <input type="number" id="cfgCelebStart" min="0" max="6000"> <span
         class="nrhint">seconds into the song</span></div>
+    <h2>Answer video starts</h2>
+    <div class="numrow"><button class="abtn" onclick="copyYtStarts()">Copy video starts</button>
+      <span class="nrhint" id="ytStartsHint">nudge a video with [ ] while it plays</span></div>
+    <textarea class="ytout" id="ytStartsOut" readonly hidden></textarea>
     <h2>Notes</h2>
     <div style="font-size:.76rem; color:var(--ink-dim); line-height:1.6">
       Team logos load from <b>assets/</b>. Everything (scores, played squares, teams, theme, timers and winner song)
@@ -486,7 +495,8 @@ function openClue(ci, qi) {
   $("aWait").style.display = "";
   $("aRev").classList.remove("shown");
   $("aVal").innerHTML = fmt(clue.a, false);
-  const yt = $("aYt"); yt.innerHTML = ""; yt.classList.remove("on");
+  if (answerYt) { answerYt.stop(); answerYt = null; }
+  const yt = $("aYt"); yt.innerHTML = ""; yt.classList.remove("on"); $("aNudge").innerHTML = "";
   const img = $("aImg"); img.classList.add("hidden"); img.removeAttribute("src");
   $("aRev").classList.toggle("noMedia", !(clue.img || clue.yt));
   if (clue.img && !clue.yt) {
@@ -520,13 +530,50 @@ function revealAnswer() {
   $("aWait").style.display = "none";
   $("aRev").classList.add("shown");
   $("aPane").classList.add("revealed");
-  const yt = $("aYt");
-  if (current?.clue.yt && !yt.firstChild) {
+  if (current?.clue.yt && !answerYt) {
     stopAudio();
-    const { id, start } = current.clue.yt;
-    yt.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${id}?start=${start || 0}&autoplay=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-    yt.classList.add("on");
+    embedAnswerYt();
   }
+}
+
+/* ============ answer-video start: nudge it live, keep it, copy it into config ============ */
+// a nudged start (saved in this browser) wins over config ytStarts, which wins over the clue's yt.start
+function ytStart(yt) {
+  const own = state.ytStart && state.ytStart[yt.id];
+  return own != null ? own : (CFG.ytStarts[yt.id] ?? yt.start ?? 0);
+}
+function mmss(sec) { return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`; }
+function embedAnswerYt() {
+  const yt = current.clue.yt, start = ytStart(yt);
+  if (answerYt) answerYt.stop();
+  $("aYt").classList.add("on");
+  answerYt = ytMount($("aYt"), { id: yt.id, start, onStatus: (kind, text) => renderYtNote(yt, start, kind, text) });
+}
+// under the answer video: where it starts and how to nudge it, or why it isn't playing
+function renderYtNote(yt, start, kind, text) {
+  const note = $("aNudge"), bad = kind === "error" || kind === "stalled";
+  note.className = "ytnudge" + (bad ? " bad" : "");
+  note.innerHTML = bad
+    ? `⚠ ${esc(text)} · <a href="${ytWatchUrl(yt.id, start)}" target="_blank" rel="noopener">open on YouTube</a>`
+    : `video from <b>${mmss(start)}</b>${kind === "loading" ? " · loading…" : ""}
+      <button onclick="nudgeYt(-10)">−10s</button><button onclick="nudgeYt(10)">+10s</button>
+      <span class="k">[ ] nudge · saved in this browser</span>`;
+}
+function nudgeYt(d) {
+  if (!current?.clue.yt || !answerYt) return;
+  state.ytStart = state.ytStart || {};
+  state.ytStart[current.clue.yt.id] = Math.max(0, ytStart(current.clue.yt) + d);
+  save(); embedAnswerYt();
+}
+function copyYtStarts() {
+  const own = state.ytStart || {};
+  const text = `ytStarts: ${JSON.stringify({ ...CFG.ytStarts, ...own }, null, 2)},`;
+  const out = $("ytStartsOut"), hint = $("ytStartsHint");
+  out.value = text; out.hidden = false; out.select();
+  const manual = () => { hint.textContent = "select the text below and copy it into config.js"; };
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => { hint.textContent = `${Object.keys(own).length} nudged · copied, paste into config.js`; }, manual);
+  } else manual();
 }
 function revealClue() { if (current?.clue.clue) $("oClue").classList.add("shown"); }
 function revealBonusQ() {
@@ -542,7 +589,7 @@ function revealBonusA() {
 function closeOverlay() {
   if (!current) return;
   stopAudio(); stopTimer();
-  $("aYt").innerHTML = "";
+  if (answerYt) { answerYt.stop(); answerYt = null; }
   if (current.revealed) state.used[current.key] = true;   // closing without revealing the answer leaves the square OPEN
   save();
   current = null;
@@ -567,24 +614,25 @@ function fmt(s, kw) {
 function renderAwards() {
   if (!current) return;
   const v = current.clue.v;
-  buildAwardRow($("awardMain"), awards, v, `+${v} / −${Math.round(v * STEAL_RATIO)} →`, true);
-  buildAwardRow($("awardBonus"), bonusAwards, BONUS_VALUE, `bonus +${BONUS_VALUE} →`, false);
+  buildAwardRow($("awardMain"), awards, v, `+${v} · ½ ${Math.round(v / 2)} · −${Math.round(v * STEAL_RATIO)} →`, true);
+  buildAwardRow($("awardBonus"), bonusAwards, BONUS_VALUE, `bonus +${BONUS_VALUE} · ½ ${Math.round(BONUS_VALUE / 2)} →`, false);
 }
+// a mark per team: 1 = full value · 0.5 = half (Alt) · -1 = wrong, costing stealPenaltyRatio of the value (Shift)
+function markFrom(e) { return e.shiftKey ? -1 : e.altKey ? 0.5 : 1; }
 // allowNeg=false → this row is positive-only (used for the bonus: a passed bonus carries no penalty)
 function buildAwardRow(rowEl, map, val, label, allowNeg) {
   rowEl.innerHTML = `<span class="alab">${label}</span>`;
   state.teams.forEach((t, i) => {
     const b = document.createElement("button");
     const s = map[i] || 0;
-    b.className = "chip" + (s > 0 ? " plus" : s < 0 ? " minus" : "");
+    b.className = "chip" + (s === 1 ? " plus" : s > 0 ? " half" : s < 0 ? " minus" : "");
     b.style.setProperty("--tc", t.color);
-    b.textContent = (s > 0 ? "+" : s < 0 ? "−" : "") + t.name;
-    b.onclick = (e) => toggleAward(map, i, val, (allowNeg && e.shiftKey) ? -1 : 1);
+    b.textContent = (s === 1 ? "+" : s > 0 ? "½ " : s < 0 ? "−" : "") + t.name;
+    b.onclick = (e) => { const m = markFrom(e); if (m > 0 || allowNeg) toggleAward(map, i, val, m); };
     rowEl.appendChild(b);
   });
 }
-// award the full value, but a deduction (wrong steal) is only stealPenaltyRatio of the value
-function awardDelta(dir, val) { return dir > 0 ? val : -Math.round(val * STEAL_RATIO); }
+function awardDelta(mark, val) { return mark > 0 ? Math.round(val * mark) : -Math.round(val * STEAL_RATIO); }
 function toggleAward(map, i, val, dir) {
   const prev = map[i] || 0;
   if (prev) state.teams[i].score -= awardDelta(prev, val);
@@ -599,6 +647,7 @@ function setupAudio(clue) {
   // hard reset any prior playback (mp3 + yt snippet)
   if (audioEl) { audioEl.pause(); audioEl.currentTime = 0; }
   if (ytAudioTimer) { clearTimeout(ytAudioTimer); ytAudioTimer = null; }
+  if (ytClipHandle) { ytClipHandle.stop(); ytClipHandle = null; }
   if (ytAudioFrame) { ytAudioFrame.remove(); ytAudioFrame = null; }
   audioMode = null; ytClip = null;
 
@@ -641,20 +690,33 @@ function toggleYtAudio() {
   const holder = document.createElement("div");
   // present + audible but visually out of the way (a covered snippet player)
   holder.style.cssText = "position:fixed; left:8px; bottom:8px; width:180px; height:101px; opacity:.02; pointer-events:none; z-index:60; overflow:hidden; border-radius:8px";
-  holder.innerHTML = `<iframe width="180" height="101"
-      src="https://www.youtube-nocookie.com/embed/${id}?start=${start || 0}&autoplay=1&controls=0&rel=0&modestbranding=1&playsinline=1"
-      allow="autoplay; encrypted-media" frameborder="0"></iframe>`;
   document.body.appendChild(holder);
   ytAudioFrame = holder;
-  btn.textContent = "⏸"; meta.className = "meta playing"; meta.textContent = "🎵 playing…";
-  if (duration) ytAudioTimer = setTimeout(stopYtAudio, duration * 1000);
+  btn.textContent = "⏸";
+  // the label follows what the player really does: loading → playing, or why it can't
+  ytClipHandle = ytMount(holder, {
+    id, start, controls: false, stallText: "hasn't started: check the internet connection",
+    onStatus: (kind, text) => {
+      if (kind === "loading") { meta.className = "meta"; meta.textContent = "clip · loading…"; }
+      else if (kind === "playing") {
+        meta.className = "meta playing"; meta.textContent = "🎵 playing…";
+        if (duration && !ytAudioTimer) ytAudioTimer = setTimeout(stopYtAudio, duration * 1000);   // count from the first sound
+      } else if (kind === "error" || kind === "stalled") {
+        if (kind === "error") stopYtAudio();
+        meta.className = "meta missing";
+        meta.innerHTML = `⚠ clip ${esc(text)} · <a href="${ytWatchUrl(id, start)}" target="_blank" rel="noopener">open on YouTube</a>`;
+        btn.textContent = "▶";
+      }
+    },
+  });
 }
 function stopYtAudio() {
   if (ytAudioTimer) { clearTimeout(ytAudioTimer); ytAudioTimer = null; }
+  if (ytClipHandle) { ytClipHandle.stop(); ytClipHandle = null; }
   if (ytAudioFrame) { ytAudioFrame.remove(); ytAudioFrame = null; }
   const btn = $("audioBtn"), meta = $("audioMeta");
   if (btn) btn.textContent = "▶";
-  if (meta && audioMode === "yt") { meta.className = "meta"; meta.textContent = "clip · YouTube"; }
+  if (meta && audioMode === "yt" && !meta.classList.contains("missing")) { meta.className = "meta"; meta.textContent = "clip · YouTube"; }
 }
 function stopAudio() {
   if (audioEl) { audioEl.pause(); audioEl.currentTime = 0; }
@@ -778,13 +840,20 @@ function openWinner() {
   $("wScore").textContent = t.score + " pts";
   const key = CELEBS[state.celebration] ? state.celebration : DEFAULT_CELEB;
   const c = CELEBS[key];
-  $("wVideo").innerHTML = c
-    ? `<iframe src="https://www.youtube-nocookie.com/embed/${c.yt}?start=${celebStartFor(key) || 0}&autoplay=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`
-    : "";
+  if (winnerYt) { winnerYt.stop(); winnerYt = null; }
+  $("wVidNote").textContent = "";
+  if (c) winnerYt = ytMount($("wVideo"), {
+    id: c.yt, start: celebStartFor(key) || 0,
+    onStatus: (kind, text) => { $("wVidNote").textContent = kind === "error" || kind === "stalled" ? `⚠ winner song ${text}` : ""; },
+  });
   $("winner").classList.add("open");
   startConfetti();
 }
-function closeWinner() { $("winner").classList.remove("open"); $("wVideo").innerHTML = ""; stopConfetti(); }
+function closeWinner() {
+  $("winner").classList.remove("open");
+  if (winnerYt) { winnerYt.stop(); winnerYt = null; }
+  stopConfetti();
+}
 function startConfetti() {
   const cv = $("confetti"), ctx = cv.getContext("2d");
   const dpr = window.devicePixelRatio || 1;
@@ -952,11 +1021,14 @@ function onKeydown(e) {
     case e.key.toLowerCase() === "t": startPhase("direct"); break;
     case e.key.toLowerCase() === "p": startPhase("pass"); break;
     case e.key.toLowerCase() === "s": stopTimer(); break;
-    case /^[1-8!@#$%^&*]$/.test(e.key): {
-      const sym = "!@#$%^&*".indexOf(e.key);
-      const i = sym >= 0 ? sym : +e.key - 1;
-      const neg = e.shiftKey || sym >= 0;
-      if (i < state.teams.length) toggleAward(awards, i, current.clue.v, neg ? -1 : 1);
+    case e.key === "[": nudgeYt(-10); break;
+    case e.key === "]": nudgeYt(10); break;
+    case e.key === "{": nudgeYt(-1); break;
+    case e.key === "}": nudgeYt(1); break;
+    case /^Digit[1-8]$/.test(e.code): {   // by key position, so Shift / Alt combos work on any layout
+      const i = +e.code.slice(5) - 1;
+      if (i < state.teams.length) toggleAward(awards, i, current.clue.v, markFrom(e));
+      e.preventDefault();
       break;
     }
   }

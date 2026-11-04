@@ -14,9 +14,11 @@
    MEDIA: answer images are Wikimedia Commons files referenced through
    Special:FilePath (a redirect to the real file, so no hashed upload paths).
    YouTube ids were taken from search results, not opened, and the
-   start/duration values are best guesses: click through every 🎵 / 🎬 clue
-   once before the night and nudge `start`. A broken image just hides; a
-   wrong YouTube id shows YouTube's "unavailable" card.
+   start values are best guesses near each song's hook. Before the night:
+     python tools/check-media.py --event 2026-11-diwali-trivia
+   lists any video that is gone or won't embed, and any broken image. In the
+   game a failing video says why, and [ ] nudges an answer video's start
+   (Settings → "Copy video starts" turns your nudges into a ytStarts block).
    To build offline mp3s for the music round:
      python tools/yt-download.py --event 2026-11-diwali-trivia
    ===================================================================== */
@@ -57,7 +59,7 @@ window.TRIVIA_CONFIG = {
         },
         {
           v: 300, q: "In a 2006 episode of this NBC sitcom, Kelly Kapoor takes the whole office to a Diwali party, where the boss proposes to his girlfriend in front of everyone.", a: "«The Office» (US), Season 3, «Diwali»",
-          yt: { id: "QirCMADtks8", start: 0 },   // "The Diwali Song" clip (verify)
+          yt: { id: "QirCMADtks8", start: 0 },   // Michael's "Diwali Song"
           b: "Who wrote the episode and plays Kelly?", bA: "«Mindy Kaling» (her real parents played Kelly's parents)"
         },
         {
@@ -167,27 +169,27 @@ window.TRIVIA_CONFIG = {
       cat: "🎬 Movies", clues: [
         {
           v: 100, q: "In this 2012 Ang Lee film, a teenager from Pondicherry is shipwrecked on a lifeboat with a Bengal tiger named Richard Parker.", a: "«Life of Pi»",
-          yt: { id: "3mMN693-F3U", start: 0 },   // trailer (verify)
+          yt: { id: "M97m2DN_2S8", start: 0 },   // Richard Parker swims back to the boat
           b: "Pi's full name, Piscine Molitor Patel, comes from a famous swimming pool in which city?", bA: "«Paris»"
         },
         {
           v: 200, q: "Opening in theatres this Diwali week, Nitesh Tiwari's two-part epic stars Ranbir Kapoor as Ram and Yash as Ravana. Name the film.", a: "«Ramayana» (Part 1)",
-          yt: { id: "jbeTOnCVjIU", start: 0 },   // trailer (verify)
+          yt: { id: "jbeTOnCVjIU", start: 0 },   // trailer: the film is new, so no famous scene yet
           b: "A.R. Rahman co-composed its score with which Oscar-winning Hollywood composer?", bA: "«Hans Zimmer»"
         },
         {
           v: 300, q: "This 2001 Karan Johar family saga opens with a lavish Diwali puja, and a mother who just *knows* her son has come home before anyone tells her.", a: "«Kabhi Khushi Kabhie Gham…» (K3G)",
-          yt: { id: "2wn3RHVpfxE", start: 0 },   // title track (verify)
+          yt: { id: "ZLWS7aeo3WA", start: 0 },   // Rahul comes home and his mother just knows
           b: "Complete its famous tagline: \"It's all about loving your ___.\"", bA: "«parents»"
         },
         {
           v: 400, q: "Since 1995, this Shah Rukh Khan and Kajol romance has screened almost every day at Mumbai's Maratha Mandir. It's the longest theatrical run in Indian cinema history.", a: "«Dilwale Dulhania Le Jayenge» (DDLJ)",
-          yt: { id: "_XYmNvTzT_A", start: 0 },   // the final train scene (verify)
+          yt: { id: "_XYmNvTzT_A", start: 0 },   // the final train scene
           b: "\"Ja Simran, ja!\" In the finale, Simran runs to catch what?", bA: "A moving «train» (Raj's hand reaching out)"
         },
         {
           v: 500, q: "\"Kitne aadmi the?\" (How many men were there?) The bandit Gabbar Singh's line comes from this 1975 'curry Western', which turned 50 in 2025.", a: "«Sholay»",
-          yt: { id: "v9o-jJYOkMA", start: 0 },   // the "Kitne aadmi the" scene (verify)
+          yt: { id: "v9o-jJYOkMA", start: 0 },   // the "Kitne aadmi the" scene
           b: "Which actor played Gabbar Singh?", bA: "«Amjad Khan»"
         },
       ]

@@ -312,6 +312,15 @@
       font-size: clamp(1.25rem, 2.5vw, 2.25rem);
     }
 
+    /* coming back to a question already played */
+    .dq-eyebrow .dq-played {
+      color: var(--ink-dim);
+      border: 1px dashed var(--line);
+      border-radius: 6px;
+      padding: .12rem .5rem;
+      letter-spacing: .12em;
+    }
+
     .dq-answer {
       display: none;
       border-top: 1px solid var(--line);
@@ -474,11 +483,8 @@
       gap: .5rem;
     }
 
-    /* keeps one row of height even when empty, so the stage doesn't jump between slides */
+    /* keeps its height even when empty, so the stage doesn't jump between slides */
     #dfoot .awards {
-      display: flex;
-      flex-direction: column;
-      gap: .45rem;
       min-height: 2.3rem;
     }
 
