@@ -394,6 +394,8 @@ function ytHtml(yt) {
 
 /* ============ render ============ */
 function renderAll() { renderBar(); renderStage(); renderFoot(); renderRail(); }
+// moving between slides leaves the score rail alone: redrawing it would re-decode every team logo
+function renderNav(motion) { renderBar(); renderStage(motion); renderFoot(); }
 
 function renderBar() {
   const s = SLIDES[state.pos];
@@ -417,16 +419,36 @@ function renderBar() {
   $("tHud").classList.toggle("off", !hasClock);
 }
 
-function renderStage() {
+/* Slides cross-fade: the new one fades in on top of the old one (both share the stage's
+   single grid cell), so the screen never flashes empty in between.
+   motion: { dir: 1 | -1, calm } when moving; omit it to redraw in place with no animation.
+   calm = coming back to a board from one of its clues, so its cells don't stagger in again. */
+function reducedMotion() { return !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches); }
+function renderStage(motion) {
   const st = $("stage");
   const ref = activeRef();
   const s = SLIDES[state.pos];
-  if (ref) st.innerHTML = questionHtml(ref);
-  else if (s.type === "cover") st.innerHTML = coverHtml();
-  else if (s.type === "round") st.innerHTML = roundHtml(s.ri);
-  else if (s.type === "board") st.innerHTML = boardHtml(s.ri);
-  else st.innerHTML = endHtml();
-  if (s.type === "board" && !ref) wireBoard(s.ri);
+  const animate = !!motion && !reducedMotion();
+  const html = ref ? questionHtml(ref)
+    : s.type === "cover" ? coverHtml()
+      : s.type === "round" ? roundHtml(s.ri)
+        : s.type === "board" ? boardHtml(s.ri, animate && !motion.calm)
+          : endHtml();
+  const holder = document.createElement("div");
+  holder.innerHTML = html.trim();
+  const el = holder.firstElementChild;
+  [...st.children].forEach(old => {
+    if (!animate) { old.remove(); return; }
+    // the outgoing copy keeps no ids or players, so lookups and sound only ever reach the new slide
+    old.querySelectorAll("[id]").forEach(n => n.removeAttribute("id"));
+    old.querySelectorAll("iframe").forEach(f => f.remove());
+    old.classList.remove("entering", "back");
+    old.classList.add("leaving");
+    setTimeout(() => old.remove(), 240);
+  });
+  if (animate) el.classList.add("entering", ...(motion.dir < 0 ? ["back"] : []));
+  st.appendChild(el);
+  if (s.type === "board" && !ref) wireBoard(s.ri, el);
 }
 
 function coverHtml() {
@@ -458,27 +480,29 @@ function roundHtml(ri) {
   </div>`;
 }
 
-function boardHtml(ri) {
+// stagger = cells drop in one by one (arriving at the round); otherwise the board just appears
+function boardHtml(ri, stagger) {
   const r = CFG.rounds[ri];
   const rows = r.categories.reduce((n, c) => Math.max(n, c.clues.length), 0);
-  const cats = r.categories.map((c, ci) => `<div class="cat" style="animation-delay:${ci * 55}ms">${esc(c.cat)}</div>`).join("");
+  const delay = ms => stagger ? ` style="animation-delay:${ms}ms"` : "";
+  const cats = r.categories.map((c, ci) => `<div class="cat"${delay(ci * 55)}>${esc(c.cat)}</div>`).join("");
   let cells = "";
   for (let qi = 0; qi < rows; qi++) {
     r.categories.forEach((c, ci) => {
       const clue = c.clues[qi];
       if (!clue) { cells += `<div class="cell" style="visibility:hidden"></div>`; return; }
       const used = state.revealed[refKey({ ri, ci, qi })];
-      cells += `<div class="cell${used ? " used" : ""}" data-ci="${ci}" data-qi="${qi}" style="animation-delay:${(qi + 1) * 75 + ci * 55}ms"
+      cells += `<div class="cell${used ? " used" : ""}" data-ci="${ci}" data-qi="${qi}"${delay((qi + 1) * 75 + ci * 55)}
         title="${used ? "Click: review · Shift-click: reopen as unplayed" : ""}"><span class="val">${clue.v}</span></div>`;
     });
   }
   return `<div class="dslide dboardwrap">
     ${r.blurb ? `<div class="dboard-blurb">${r.blurb}</div>` : ""}
-    <div class="dboard" style="grid-template-columns:repeat(${r.categories.length},1fr);grid-template-rows:auto repeat(${rows},minmax(0,1fr))">${cats}${cells}</div>
+    <div class="dboard${stagger ? "" : " calm"}" style="grid-template-columns:repeat(${r.categories.length},1fr);grid-template-rows:auto repeat(${rows},minmax(0,1fr))">${cats}${cells}</div>
   </div>`;
 }
-function wireBoard(ri) {
-  document.querySelectorAll("#stage .dboard .cell[data-ci]").forEach(el => {
+function wireBoard(ri, root) {
+  root.querySelectorAll(".dboard .cell[data-ci]").forEach(el => {
     el.onclick = e => {
       const ref = { ri, ci: +el.dataset.ci, qi: +el.dataset.qi };
       if (e.shiftKey && state.revealed[refKey(ref)]) { delete state.revealed[refKey(ref)]; save(); }
@@ -495,18 +519,9 @@ function questionHtml(ref) {
     ? `${esc(r.title)} · Question ${ref.qi + 1} of ${r.questions.length}`
     : `${esc(r.categories[ref.ci].cat)}`;
   const pts = parts.length > 1 ? parts.map(p => `${esc(p.label)} ${p.points}`).join(" + ") : `${parts[0].points} pts`;
-  // media: question images until the answer is shown, then the answer's video or images
-  const qMedia = list(q.qImg), aMedia = list(q.img);
-  let media = "", count = 0;
-  if (shown && q.yt) media = ytHtml(q.yt);
-  else {
-    const srcs = shown && aMedia.length ? aMedia : qMedia;
-    media = srcs.length ? imgsHtml(srcs)
-      : `<div class="awaiting"><span class="glyph">?</span><span class="k">press A to reveal</span></div>`;
-    count = srcs.length;
-  }
-  const hasMedia = qMedia.length || aMedia.length || q.yt;
-  const multi = count > 1;
+  const hasMedia = list(q.qImg).length || list(q.img).length || q.yt;
+  const media = mediaHtml(q, shown);
+  const multi = media.count > 1;
   return `<div class="dslide dq${hasMedia ? " withMedia" : ""}${shown ? " shown" : ""}">
     <div class="dq-main">
       <div class="dq-eyebrow"><span>${eyebrow}</span><span class="dq-pts">${pts}</span></div>
@@ -519,8 +534,19 @@ function questionHtml(ref) {
       ${q.note ? `<div class="hostnote">${esc(q.note)}</div>` : ""}
       <div class="dq-answer"><span class="plab">Answer</span><div class="aval">${fmt(q.a, false)}</div></div>
     </div>
-    ${hasMedia ? `<div class="dq-media${multi ? " multi" : ""}" id="dqMedia">${media}</div>` : ""}
+    ${hasMedia ? `<div class="dq-media${multi ? " multi" : ""}" id="dqMedia">${media.html}</div>` : ""}
   </div>`;
+}
+// question images until the answer is shown, then the answer's video or images
+function mediaHtml(q, shown) {
+  if (shown && q.yt) return { html: ytHtml(q.yt), count: 0 };
+  const aMedia = list(q.img), qMedia = list(q.qImg);
+  const srcs = shown && aMedia.length ? aMedia : qMedia;
+  return {
+    html: srcs.length ? imgsHtml(srcs)
+      : `<div class="awaiting"><span class="glyph">?</span><span class="k">press A to reveal</span></div>`,
+    count: srcs.length,
+  };
 }
 
 function endHtml() {
@@ -589,7 +615,7 @@ function editScore(i) {
     else if (e.key === "Escape") { renderRail(); }
   });
 }
-function refreshEnd() { if (SLIDES[state.pos].type === "end" && !state.open) renderStage(); }
+function refreshEnd() { if (SLIDES[state.pos].type === "end" && !state.open) renderStage(); }   // in place, no fade
 
 /* ============ awards: one row per scoring part, ± per team ============ */
 function renderAwards() {
@@ -641,19 +667,21 @@ function prev() {
 }
 function go(i) {
   i = Math.max(0, Math.min(SLIDES.length - 1, i));
+  if (i === state.pos && !state.open) return;
+  const dir = i >= state.pos ? 1 : -1;
   leaveSlide();
   state.pos = i; state.open = null;
-  save(); renderAll(); enterSlide();
+  save(); renderNav({ dir }); enterSlide();
 }
 function openBoardClue(ref) {
   leaveSlide();
   state.open = ref;
-  save(); renderAll(); enterSlide();
+  save(); renderNav({ dir: 1 }); enterSlide();
 }
 function closeBoardClue() {
   leaveSlide();
   state.open = null;
-  save(); renderAll();
+  save(); renderNav({ dir: -1, calm: true });
 }
 function leaveSlide() { stopAudio(); stopTimer(); current = null; }
 function enterSlide() {
@@ -671,11 +699,19 @@ function revealAnswer() {
   state.revealed[key] = true;
   save();
   stopTimer();
-  if (clueOf(ref).yt) stopAudio();
-  const keepClue = $("oClue") && $("oClue").classList.contains("shown");
-  renderStage(); renderBar(); renderFoot();
-  setupAudio(clueOf(ref));
-  if (keepClue) revealClue();
+  const q = clueOf(ref);
+  if (q.yt) stopAudio();
+  // update the slide in place (no redraw): show the answer, and swap in the answer's own media
+  const slide = document.querySelector("#stage .dq:not(.leaving)");
+  if (slide) {
+    slide.classList.add("shown");
+    const box = slide.querySelector(".dq-media");
+    if (box && (q.yt || list(q.img).length)) {
+      const m = mediaHtml(q, true);
+      box.innerHTML = m.html; box.classList.toggle("multi", m.count > 1);
+    }
+  }
+  renderBar(); renderFoot();
 }
 function revealClue() { if (current && clueOf(current.ref).clue) $("oClue").classList.add("shown"); }
 

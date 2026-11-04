@@ -57,17 +57,82 @@
     }
 
     /* ============ stage + slides ============ */
+    /* one grid cell: the incoming and outgoing slides overlap while they cross-fade */
     #stage {
       flex: 1;
       min-height: 0;
-      display: flex;
+      display: grid;
+      grid-template: minmax(0, 1fr) / minmax(0, 1fr);
     }
 
     .dslide {
-      flex: 1;
+      grid-area: 1 / 1;
       min-width: 0;
       min-height: 0;
-      animation: drop .45s cubic-bezier(.2, .7, .2, 1) backwards;
+    }
+
+    .dslide.entering {
+      z-index: 1;
+      animation: deckIn .3s cubic-bezier(.2, .7, .2, 1) both;
+    }
+
+    .dslide.entering.back {
+      animation-name: deckInBack;
+    }
+
+    .dslide.leaving {
+      z-index: 0;
+      pointer-events: none;
+      animation: deckOut .18s ease both;
+    }
+
+    @keyframes deckIn {
+      from {
+        opacity: 0;
+        transform: translateX(22px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    @keyframes deckInBack {
+      from {
+        opacity: 0;
+        transform: translateX(-22px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    @keyframes deckOut {
+      from {
+        opacity: 1
+      }
+
+      to {
+        opacity: 0
+      }
+    }
+
+    /* back on a board from one of its clues: no staggered drop-in again */
+    .dboard.calm .cat,
+    .dboard.calm .cell {
+      animation: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      .dslide.entering,
+      .dslide.leaving,
+      .dq .dq-answer {
+        animation: none;
+      }
     }
 
     .dkicker {
@@ -409,10 +474,12 @@
       gap: .5rem;
     }
 
+    /* keeps one row of height even when empty, so the stage doesn't jump between slides */
     #dfoot .awards {
       display: flex;
       flex-direction: column;
       gap: .45rem;
+      min-height: 2.3rem;
     }
 
     .dnav {
