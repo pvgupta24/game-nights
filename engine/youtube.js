@@ -35,13 +35,42 @@ function ytLoadApi() {
   return ytApiPromise;
 }
 
+const YT_OFFLINE = "can't reach YouTube: check the internet connection";
+
 function ytWatchUrl(id, start) { return `https://www.youtube.com/watch?v=${id}&t=${start || 0}s`; }
 
 /* Mount a player into `host` (emptied first) and start it.
-   opts: { id, start, controls (default true), stallText, onStatus(kind, text) }
+   opts: { id, start, alts, controls (default true), stallText, onStatus(kind, text, video) }
+   alts: backup uploads, [{ id, start }] or ["id"], tried in order when YouTube refuses one.
    kind: "loading" | "playing" | "paused" | "ended" | "stalled" | "error"
+   video: the { id, start } being played, for links and start nudges.
    Returns a handle: { stop() }. */
 function ytMount(host, opts) {
+  const queue = [{ id: opts.id, start: opts.start || 0 }].concat((opts.alts || [])
+    .map(a => typeof a === "string" ? { id: a, start: 0 } : { id: a.id, start: a.start || 0 }));
+  const report = (kind, text, video) => { if (opts.onStatus) opts.onStatus(kind, text, video); };
+  let i = 0, handle = null, stopped = false;
+  const play = () => {
+    const video = queue[i];
+    handle = ytMountOne(host, {
+      ...opts, id: video.id, start: video.start,
+      onStatus: (kind, text) => {
+        // refused (removed, private, no embedding) and a backup exists: move on to it
+        if (kind === "error" && text !== YT_OFFLINE && i < queue.length - 1) {
+          i++;
+          report("loading", `that upload won't play (${text}), trying another…`, queue[i]);
+          setTimeout(() => { if (!stopped) { handle.stop(); play(); } }, 0);
+          return;
+        }
+        report(kind, text, video);
+      },
+    });
+  };
+  play();
+  return { stop() { stopped = true; if (handle) handle.stop(); } };
+}
+
+function ytMountOne(host, opts) {
   host.innerHTML = "";
   const slot = document.createElement("div");
   host.appendChild(slot);
@@ -74,7 +103,7 @@ function ytMount(host, opts) {
   }).catch(() => {
     if (stopped) return;
     clearTimeout(watchdog);
-    status("error", "can't reach YouTube: check the internet connection");
+    status("error", YT_OFFLINE);
   });
 
   return {

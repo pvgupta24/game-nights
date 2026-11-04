@@ -178,7 +178,7 @@ window.TRIVIA_CONFIG = {
             { v: 400, q: "Filmed in Vancouver: a crocodile, a coach and a Sandler collide in this comedy.", a: "«Happy Gilmore»", yt: { id: "idrFvuj7__w", start: 0 } },   // the Bob Barker fight
             { v: 600, q: "Filmed in Vancouver: the strongest man alive comes to Earth in this DC film.", a: "«Man of Steel»", yt: { id: "4KoMJ0gC4Vc", start: 0 } },   // first flight
             { v: 800, q: "Filmed in Vancouver: Dwayne Johnson stars in this high-flying action movie.", a: "«Skyscraper»", yt: { id: "KMkdp0Uy8t0", start: 0 } },   // the crane jump
-            { v: 1000, q: "Filmed in Vancouver: Ethan Hunt and his colleagues go rogue in this action film, the fourth in its series.", a: "«Mission: Impossible, Ghost Protocol»", yt: { id: "Mus6yzV23eo", start: 0 } },   // the Burj Khalifa climb
+            { v: 1000, q: "Filmed in Vancouver: Ethan Hunt and his colleagues go rogue in this action film, the fourth in its series.", a: "«Mission: Impossible, Ghost Protocol»", yt: { id: "vw93e76Vkgo", start: 0, alts: [{ id: "3isre2fpZog" }, { id: "gqocrvv26eo" }, { id: "8g8ssPKaSkk" }] } },   // the Burj Khalifa climb, with backup uploads
           ]
         },
         {
@@ -206,7 +206,7 @@ window.TRIVIA_CONFIG = {
           // the doc listed only "Bahubali ne Katappa ko kyu maara", read here as a fix-the-quote question
           q: "Fix this famous line: \"Baahubali ne Kattappa ko kyun maara?\"",
           a: "\"«Kattappa» ne «Baahubali» ko kyun maara?\" (Why did Kattappa kill Baahubali?)",
-          yt: { id: "k2kx47Kg1ao", start: 0 },   // the moment Kattappa strikes
+          yt: { id: "25GC3g6EOL0", start: 0, alts: [{ id: "Go42qkt5m5A" }, { id: "phEsT7FecDE" }, { id: "8uw0vW_eolo" }] },   // the moment Kattappa strikes; last backup is the trailer
         },
         {
           q: "X is a fictional film about the 1999 Kargil War, directed by Farhan Akhtar. Near the end, the battalion is sent to capture Y Hill, also called Point Z. Name X, Y and Z.",

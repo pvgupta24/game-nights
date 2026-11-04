@@ -169,7 +169,7 @@ window.TRIVIA_CONFIG = {
       cat: "🎬 Movies", clues: [
         {
           v: 100, q: "In this 2012 Ang Lee film, a teenager from Pondicherry is shipwrecked on a lifeboat with a Bengal tiger named Richard Parker.", a: "«Life of Pi»",
-          yt: { id: "M97m2DN_2S8", start: 0 },   // Richard Parker swims back to the boat
+          yt: { id: "Bhc5g3I2jiQ", start: 0, alts: [{ id: "NP_mQ-PPPmg" }, { id: "3mMN693-F3U" }, { id: "mZEZ35Fhvuc" }] },   // Richard Parker's goodbye; last backups are trailers
           b: "Pi's full name, Piscine Molitor Patel, comes from a famous swimming pool in which city?", bA: "«Paris»"
         },
         {
@@ -209,8 +209,8 @@ window.TRIVIA_CONFIG = {
           v: 200, q: "Name the song and the film it's from.", a: "«Naatu Naatu» from <em>RRR</em> (M.M. Keeravani)",
           clue: "Won the 2023 Oscar for Best Original Song.",
           audio: "clips/naatu-naatu.mp3",
-          ytAudio: { id: "OsU0CGZoV8E", start: 55, duration: 12 },
-          yt: { id: "OsU0CGZoV8E", start: 120 },
+          ytAudio: { id: "4_eEgJhsBMo", start: 55, duration: 12, alts: [{ id: "_vktceH8ZA0", start: 55 }, { id: "xaoVjeACCqQ", start: 55 }, { id: "APPcu7DnYnU", start: 55 }] },
+          yt: { id: "4_eEgJhsBMo", start: 120, alts: [{ id: "_vktceH8ZA0", start: 120 }, { id: "xaoVjeACCqQ", start: 120 }, { id: "APPcu7DnYnU", start: 120 }] },
           b: "Its dance was filmed in front of which country's presidential palace?", bA: "«Ukraine» (Mariinskyi Palace, Kyiv, August 2021)"
         },
         {
@@ -298,7 +298,7 @@ window.TRIVIA_CONFIG = {
     songs: [
       { key: "jaiho", label: "Jai Ho", sub: "A.R. Rahman · 'let there be victory'", yt: "ai_2a6hR7Bo", start: 0, emoji: "🏆" },
       { key: "gallan", label: "Gallan Goodiyaan", sub: "Dil Dhadakne Do", yt: "jCEdTq3j-0U", start: 25, emoji: "💃" },
-      { key: "naatu", label: "Naatu Naatu", sub: "RRR", yt: "OsU0CGZoV8E", start: 120, emoji: "🕺" },
+      { key: "naatu", label: "Naatu Naatu", sub: "RRR", yt: "4_eEgJhsBMo", start: 120, alts: [{ id: "_vktceH8ZA0", start: 120 }, { id: "xaoVjeACCqQ", start: 120 }, { id: "APPcu7DnYnU", start: 120 }], emoji: "🕺" },
     ],
   },
 

@@ -262,11 +262,19 @@ always opens it on the question side, marked "played".
 
 ## YouTube: when a video won't play, and getting starts right
 
-Every video and clip plays through `engine/youtube.js`, so the screen says what
-is happening instead of failing silently. A clip's label reads "loading…", then
-"playing" only once sound starts. If YouTube refuses, the reason shows in plain
-words (removed or private, owner blocks embedding, no connection) with an "open
-on YouTube" link. Anything that hasn't started after about 9 seconds says so too.
+Every video and clip plays through `engine/youtube.js`. The screen stays clean
+while things work: a clip's small label reads "loading…", then "playing" once
+sound starts, and an answer video shows nothing but the video. Only when YouTube
+refuses does one line appear under it, with the reason in plain words (removed or
+private, owner blocks embedding, no connection) and an "open on YouTube" link.
+Anything that hasn't started after about 9 seconds says so too.
+
+Uploads disappear over time, so a video can list **backups**; the board quietly
+moves to the next one when YouTube refuses the first (keep them on one line):
+
+```js
+yt: { id: "vw93e76Vkgo", start: 0, alts: [{ id: "3isre2fpZog" }, { id: "gqocrvv26eo", start: 12 }] },
+```
 
 **Check every link before the night**, from a machine with internet:
 
@@ -277,8 +285,9 @@ python tools/check-media.py --event 2025-10-20-diwali-trivia
 It asks YouTube about each video id (only public, embeddable videos pass, and it
 prints each title so you can eyeball the match) and loads every image.
 
-**Start an answer video at the right moment.** While it plays, **[** / **]** move
-its start 10 seconds earlier or later (**{** / **}** by 1 second), saved in that
+**Start an answer video at the right moment.** Set `start` in the config. To
+adjust live, **[** / **]** move it 10 seconds earlier or later (**{** / **}** by 1
+second); the screen shows the new start for a moment, and it's saved in that
 browser. Settings → **Copy video starts** turns your nudges into a block to paste
 into `config.js`, so they ship with the board:
 

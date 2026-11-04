@@ -87,7 +87,7 @@ let PRESET_LIST, PRESETS, DEFAULT_PRESET;
 let CELEBS, DEFAULT_CELEB;
 let state, current = null, awards = {}, bonusAwards = {};
 let audioEl, audioMode = null, ytClip = null, ytAudioFrame = null, ytAudioTimer = null, ytClipHandle = null;
-let answerYt = null, winnerYt = null;   // YouTube players (engine/youtube.js) for the answer video and the winner song
+let answerYt = null, winnerYt = null, answerVideo = null;   // answerVideo: the upload actually showing   // YouTube players (engine/youtube.js) for the answer video and the winner song
 let timer = { phase: null, total: 0, elapsed: 0, last: 0, int: null, paused: false };
 let winnerTeam = null, confettiRAF = null;
 
@@ -236,7 +236,7 @@ function buildShell(cfg) {
         <button class="abtn" id="btnBonusA" onclick="revealBonusA()">Bonus Ans · N</button>
         <button class="abtn" id="btnClip" onclick="toggleAudio()">▶ Clip · M</button>
         <span class="legend"><b>Space</b> pause&nbsp;·&nbsp;<b>1-8</b> full&nbsp;·&nbsp;<b>Alt</b> half&nbsp;·&nbsp;<b>⇧</b>
-          wrong&nbsp;·&nbsp;<b>M</b> clip&nbsp;·&nbsp;<b>[ ]</b> video start</span>
+          wrong&nbsp;·&nbsp;<b>M</b> clip</span>
       </div>
       <div class="award" id="awardMain"></div>
       <div class="award" id="awardBonus" style="display:none"></div>
@@ -495,7 +495,7 @@ function openClue(ci, qi) {
   $("aWait").style.display = "";
   $("aRev").classList.remove("shown");
   $("aVal").innerHTML = fmt(clue.a, false);
-  if (answerYt) { answerYt.stop(); answerYt = null; }
+  if (answerYt) { answerYt.stop(); answerYt = null; answerVideo = null; }
   const yt = $("aYt"); yt.innerHTML = ""; yt.classList.remove("on"); $("aNudge").innerHTML = "";
   const img = $("aImg"); img.classList.add("hidden"); img.removeAttribute("src");
   $("aRev").classList.toggle("noMedia", !(clue.img || clue.yt));
@@ -542,28 +542,44 @@ function ytStart(yt) {
   const own = state.ytStart && state.ytStart[yt.id];
   return own != null ? own : (CFG.ytStarts[yt.id] ?? yt.start ?? 0);
 }
+// the clip's video and its backup uploads, each starting where it was nudged to; `first` jumps the queue
+function ytQueue(yt, first) {
+  const all = [yt, ...(yt.alts || [])].map(v => typeof v === "string" ? { id: v, start: 0 } : v)
+    .map(v => ({ id: v.id, start: ytStart(v) }));
+  if (first) all.sort((a, b) => (b.id === first) - (a.id === first));
+  return all;
+}
 function mmss(sec) { return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`; }
-function embedAnswerYt() {
-  const yt = current.clue.yt, start = ytStart(yt);
+function embedAnswerYt(first) {
+  const [head, ...alts] = ytQueue(current.clue.yt, first);
   if (answerYt) answerYt.stop();
   $("aYt").classList.add("on");
-  answerYt = ytMount($("aYt"), { id: yt.id, start, onStatus: (kind, text) => renderYtNote(yt, start, kind, text) });
+  answerYt = ytMount($("aYt"), {
+    id: head.id, start: head.start, alts,
+    onStatus: (kind, text, video) => { answerVideo = video; renderYtNote(video, kind, text); },
+  });
 }
-// under the answer video: where it starts and how to nudge it, or why it isn't playing
-function renderYtNote(yt, start, kind, text) {
-  const note = $("aNudge"), bad = kind === "error" || kind === "stalled";
-  note.className = "ytnudge" + (bad ? " bad" : "");
-  note.innerHTML = bad
-    ? `⚠ ${esc(text)} · <a href="${ytWatchUrl(yt.id, start)}" target="_blank" rel="noopener">open on YouTube</a>`
-    : `video from <b>${mmss(start)}</b>${kind === "loading" ? " · loading…" : ""}
-      <button onclick="nudgeYt(-10)">−10s</button><button onclick="nudgeYt(10)">+10s</button>
-      <span class="k">[ ] nudge · saved in this browser</span>`;
+// under the answer video, only when something is wrong: why it isn't playing (the screen is the players' too)
+function renderYtNote(video, kind, text) {
+  const note = $("aNudge"); if (!note) return;
+  const bad = kind === "error" || kind === "stalled";
+  if (!bad) { if (note.classList.contains("bad")) { note.className = "ytnudge"; note.innerHTML = ""; } return; }
+  note.className = "ytnudge bad";
+  note.innerHTML = `⚠ ${esc(text)} · <a href="${ytWatchUrl(video.id, video.start)}" target="_blank" rel="noopener">open on YouTube</a>`;
+}
+// a nudge says where the video now starts, then gets out of the way
+let nudgeFlash = null;
+function flashNudge(sec) {
+  const note = $("aNudge"); if (!note) return;
+  note.className = "ytnudge"; note.textContent = `starts at ${mmss(sec)}`;
+  clearTimeout(nudgeFlash);
+  nudgeFlash = setTimeout(() => { if (!note.classList.contains("bad")) note.textContent = ""; }, 1500);
 }
 function nudgeYt(d) {
-  if (!current?.clue.yt || !answerYt) return;
+  if (!current?.clue.yt || !answerYt || !answerVideo) return;
   state.ytStart = state.ytStart || {};
-  state.ytStart[current.clue.yt.id] = Math.max(0, ytStart(current.clue.yt) + d);
-  save(); embedAnswerYt();
+  state.ytStart[answerVideo.id] = Math.max(0, answerVideo.start + d);
+  save(); embedAnswerYt(answerVideo.id); flashNudge(state.ytStart[answerVideo.id]);
 }
 function copyYtStarts() {
   const own = state.ytStart || {};
@@ -686,7 +702,7 @@ function toggleYtAudio() {
   if (!ytClip) return;
   if (ytAudioFrame) { stopYtAudio(); return; }
   const btn = $("audioBtn"), meta = $("audioMeta");
-  const { id, start, duration } = ytClip;
+  const { id, start, duration, alts } = ytClip;
   const holder = document.createElement("div");
   // present + audible but visually out of the way (a covered snippet player)
   holder.style.cssText = "position:fixed; left:8px; bottom:8px; width:180px; height:101px; opacity:.02; pointer-events:none; z-index:60; overflow:hidden; border-radius:8px";
@@ -695,8 +711,8 @@ function toggleYtAudio() {
   btn.textContent = "⏸";
   // the label follows what the player really does: loading → playing, or why it can't
   ytClipHandle = ytMount(holder, {
-    id, start, controls: false, stallText: "hasn't started: check the internet connection",
-    onStatus: (kind, text) => {
+    id, start, alts, controls: false, stallText: "hasn't started: check the internet connection",
+    onStatus: (kind, text, video) => {
       if (kind === "loading") { meta.className = "meta"; meta.textContent = "clip · loading…"; }
       else if (kind === "playing") {
         meta.className = "meta playing"; meta.textContent = "🎵 playing…";
@@ -704,7 +720,7 @@ function toggleYtAudio() {
       } else if (kind === "error" || kind === "stalled") {
         if (kind === "error") stopYtAudio();
         meta.className = "meta missing";
-        meta.innerHTML = `⚠ clip ${esc(text)} · <a href="${ytWatchUrl(id, start)}" target="_blank" rel="noopener">open on YouTube</a>`;
+        meta.innerHTML = `⚠ clip ${esc(text)} · <a href="${ytWatchUrl(video.id, video.start)}" target="_blank" rel="noopener">open on YouTube</a>`;
         btn.textContent = "▶";
       }
     },
@@ -843,7 +859,7 @@ function openWinner() {
   if (winnerYt) { winnerYt.stop(); winnerYt = null; }
   $("wVidNote").textContent = "";
   if (c) winnerYt = ytMount($("wVideo"), {
-    id: c.yt, start: celebStartFor(key) || 0,
+    id: c.yt, start: celebStartFor(key) || 0, alts: c.alts,
     onStatus: (kind, text) => { $("wVidNote").textContent = kind === "error" || kind === "stalled" ? `⚠ winner song ${text}` : ""; },
   });
   $("winner").classList.add("open");
@@ -956,7 +972,7 @@ function boot() {
   DEFAULT_PRESET = CFG.teams.default || (PRESET_LIST[0] && PRESET_LIST[0].key);
 
   CELEBS = {};
-  CFG.celebrations.songs.forEach(s => { CELEBS[s.key] = { label: s.label, sub: s.sub, yt: s.yt, start: s.start, emoji: s.emoji }; });
+  CFG.celebrations.songs.forEach(s => { CELEBS[s.key] = { label: s.label, sub: s.sub, yt: s.yt, start: s.start, emoji: s.emoji, alts: s.alts }; });
   DEFAULT_CELEB = CFG.celebrations.default || (CFG.celebrations.songs[0] && CFG.celebrations.songs[0].key);
 
   // build the DOM, then grab element refs that live inside it

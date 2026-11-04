@@ -6,7 +6,9 @@ before game night instead of as "Video unavailable" on the big screen.
 
   YouTube    asks YouTube's oEmbed endpoint about each video id: it answers only
              for videos that exist, are public and allow embedding. The title is
-             printed so you can eyeball that the id is the clip you meant.
+             printed so you can eyeball that the id is the clip you meant. A video
+             with backups (alts) passes if any of its uploads plays: the failing
+             ones show as "alt" (the board skips them on its own).
   images     fetches each image URL (Wikimedia Special:FilePath links included)
              and confirms it returns an image; local paths must exist on disk.
 
@@ -114,7 +116,7 @@ def check_event(slug):
         items += [(k, v, f"songs.json:{w}") for k, v, w in scan_songs(songs) if (k, v) not in known]
 
     print(f"\n== {slug} · {len(items)} links ==")
-    bad = 0
+    results = []
     for kind, value, where in items:
         where = f"config.js:{where}" if isinstance(where, int) else where
         if kind == "yt":
@@ -126,10 +128,16 @@ def check_event(slug):
         else:
             ok = os.path.exists(os.path.normpath(os.path.join(folder, value)))
             info, label = ("" if ok else "file not found"), f"file {value}"
-        if not ok:
-            bad += 1
-        print(f"  {'ok  ' if ok else 'FAIL'}  {label:<60}  {where:<16}  {info}")
-    print(f"  → {len(items) - bad} ok, {bad} failed")
+        results.append((kind, label, where, ok, info))
+    # a video listed with backups (all on one config line) is fine while any of its uploads plays
+    covered = {w for k, _, w, ok, _ in results if k == "yt" and ok}
+    bad = 0
+    for kind, label, where, ok, info in results:
+        tag = "ok  " if ok else ("alt " if kind == "yt" and where in covered else "FAIL")
+        bad += tag == "FAIL"
+        print(f"  {tag}  {label:<60}  {where:<16}  {info}")
+    print(f"  → {len(results) - bad} fine, {bad} failed" + ("  (alt = a backup on the same line plays instead)" if any(
+        not ok and k == "yt" and w in covered for k, _, w, ok, _ in results) else ""))
     return bad
 
 

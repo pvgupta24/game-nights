@@ -1772,7 +1772,7 @@
       color: var(--ink);
     }
 
-    /* ============ YouTube status: where a video starts, or why it isn't playing ============ */
+    /* ============ YouTube status: empty unless a video can't play (or the host just nudged it) ============ */
     .ytnudge {
       flex: none;
       display: flex;
@@ -1793,25 +1793,6 @@
 
     .ytnudge b {
       color: var(--ink);
-    }
-
-    .ytnudge button {
-      font: inherit;
-      color: var(--ink);
-      background: var(--panel-2);
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      padding: .2rem .5rem;
-      cursor: pointer;
-    }
-
-    .ytnudge button:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
-    .ytnudge .k {
-      opacity: .7;
     }
 
     .ytnudge.bad,
