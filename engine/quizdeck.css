@@ -1,0 +1,528 @@
+    /* ============ QUIZDECK: the round-by-round mode ============ */
+    /* Loaded after quizboard.css, which supplies the themes and the shared pieces
+       (header buttons, team rail, award chips, timer track, rules card, winner,
+       settings drawer). This file only lays out the deck itself. */
+
+    /* ============ deck bar: round chip · position · progress · clock ============ */
+    .deckbar {
+      display: flex;
+      align-items: center;
+      gap: .9rem;
+      flex: none;
+    }
+
+    .deckbar .dchip {
+      font-family: "Barlow Condensed", sans-serif;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-size: 1.25rem;
+      white-space: nowrap;
+    }
+
+    .deckbar .dpos {
+      font-family: "JetBrains Mono", monospace;
+      font-size: .7rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      white-space: nowrap;
+    }
+
+    .deckbar .dprog {
+      flex: 1;
+      height: 4px;
+      min-width: 60px;
+      background: var(--line-soft);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .deckbar .dprog i {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, var(--accent-deep), var(--accent));
+      transition: width .35s ease;
+    }
+
+    .deckbar .thud {
+      margin-left: 0;
+    }
+
+    .deckbar .thud.off,
+    .deck #ttrack.off {
+      visibility: hidden;
+    }
+
+    /* ============ stage + slides ============ */
+    #stage {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+    }
+
+    .dslide {
+      flex: 1;
+      min-width: 0;
+      min-height: 0;
+      animation: drop .45s cubic-bezier(.2, .7, .2, 1) backwards;
+    }
+
+    .dkicker {
+      font-family: "JetBrains Mono", monospace;
+      font-size: clamp(.7rem, 1.6vh, .9rem);
+      letter-spacing: .3em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .dgo {
+      font-family: "JetBrains Mono", monospace;
+      font-size: .7rem;
+      letter-spacing: .24em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      opacity: .7;
+    }
+
+    /* cover + round title cards */
+    .dcover,
+    .dround,
+    .dend {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: clamp(.6rem, 2.2vh, 1.4rem);
+      background: radial-gradient(70% 70% at 50% 40%, var(--accent-glow), transparent 70%);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: clamp(1rem, 3vh, 2.4rem) clamp(1rem, 4vw, 3rem);
+      overflow: auto;
+    }
+
+    .dcover-logo {
+      height: clamp(64px, 14vh, 130px);
+      width: auto;
+    }
+
+    .dcover h1,
+    .dround h2 {
+      font-family: "Barlow Condensed", sans-serif;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .02em;
+      line-height: .95;
+      color: var(--ink);
+      text-wrap: balance;
+    }
+
+    .dcover h1 {
+      font-size: clamp(3rem, 13vh, 8rem);
+    }
+
+    .dcover h1 b {
+      color: var(--accent);
+    }
+
+    .dcover-rounds {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: .5rem .9rem;
+      max-width: 900px;
+    }
+
+    .dcover-rounds li {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      font-weight: 700;
+      font-size: clamp(.9rem, 2.1vh, 1.15rem);
+      color: var(--ink);
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: .35rem .9rem .35rem .4rem;
+    }
+
+    .dcover-rounds li span {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.6em;
+      height: 1.6em;
+      border-radius: 50%;
+      font-family: "JetBrains Mono", monospace;
+      font-size: .8em;
+      background: var(--accent);
+      color: var(--on-accent);
+    }
+
+    .dround h2 {
+      font-size: clamp(3rem, 14vh, 8.5rem);
+    }
+
+    .dround p {
+      max-width: 46ch;
+      font-size: clamp(1rem, 2.6vh, 1.4rem);
+      line-height: 1.45;
+      color: var(--ink-dim);
+      text-wrap: balance;
+    }
+
+    .dround .dmeta {
+      font-family: "JetBrains Mono", monospace;
+      font-size: clamp(.72rem, 1.7vh, .9rem);
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--gold);
+      border: 1px solid color-mix(in oklch, var(--gold) 34%, var(--line));
+      background: color-mix(in oklch, var(--gold) 10%, transparent);
+      border-radius: 8px;
+      padding: .35rem .8rem;
+    }
+
+    .dround.rapid h2 {
+      color: var(--gold);
+    }
+
+    /* ============ question slide ============ */
+    .dq {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1.2rem;
+      background: linear-gradient(165deg, var(--panel-2), var(--panel));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: clamp(1rem, 2.6vh, 1.8rem) clamp(1.1rem, 2.4vw, 2.2rem);
+    }
+
+    .dq.withMedia {
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    }
+
+    .dq-main {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: .9rem;
+      min-height: 0;
+      overflow: auto;
+    }
+
+    .dq-eyebrow {
+      display: flex;
+      align-items: center;
+      gap: .8rem;
+      font-family: "JetBrains Mono", monospace;
+      font-size: .7rem;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+    }
+
+    .dq-eyebrow .dq-pts {
+      color: var(--gold);
+      font-weight: 800;
+      letter-spacing: .08em;
+      font-size: .82rem;
+      border: 1px solid color-mix(in oklch, var(--gold) 32%, var(--line));
+      background: color-mix(in oklch, var(--gold) 10%, transparent);
+      border-radius: 6px;
+      padding: .12rem .5rem;
+    }
+
+    .dq .dq-q {
+      font-size: clamp(1.35rem, 3.1vw, 2.7rem);
+      line-height: 1.28;
+    }
+
+    .dq.withMedia .dq-q {
+      font-size: clamp(1.25rem, 2.5vw, 2.25rem);
+    }
+
+    .dq-answer {
+      display: none;
+      border-top: 1px solid var(--line);
+      padding-top: .8rem;
+      animation: slideIn .3s ease;
+    }
+
+    .dq.shown .dq-answer {
+      display: block;
+    }
+
+    .dq-answer .plab {
+      font-family: "JetBrains Mono", monospace;
+      font-size: .62rem;
+      letter-spacing: .28em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+    }
+
+    .dq-answer .aval {
+      margin-top: .3rem;
+      font-size: clamp(1.25rem, 2.5vw, 2.2rem);
+      font-weight: 800;
+      line-height: 1.25;
+      color: var(--accent);
+    }
+
+    .dq-media {
+      min-width: 0;
+      min-height: 0;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      align-content: center;
+      gap: .8rem;
+      background: var(--bg2);
+      border: 1px solid var(--line-soft);
+      border-radius: var(--radius);
+      padding: .8rem;
+      overflow: hidden;
+    }
+
+    .dq-media img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: 10px;
+    }
+
+    .dq-media.multi img {
+      max-width: calc(50% - .4rem);
+      max-height: calc(50% - .4rem);
+    }
+
+    .dq-media .ytwrap {
+      width: 100%;
+      height: auto;
+      max-height: 100%;
+    }
+
+    /* ============ board round ============ */
+    .dboardwrap {
+      display: flex;
+      flex-direction: column;
+      gap: .6rem;
+    }
+
+    .dboard-blurb {
+      flex: none;
+      text-align: center;
+      font-size: clamp(.85rem, 1.9vh, 1rem);
+      color: var(--ink-dim);
+    }
+
+    .dboard {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      gap: 9px;
+    }
+
+    /* ============ final standings ============ */
+    .dstand {
+      list-style: none;
+      padding: 0;
+      width: min(860px, 100%);
+      display: flex;
+      flex-direction: column;
+      gap: clamp(.35rem, 1.2vh, .7rem);
+    }
+
+    .dstand li {
+      display: grid;
+      grid-template-columns: 2.2rem 3rem minmax(0, 14rem) minmax(0, 1fr) 5.5rem;
+      align-items: center;
+      gap: .8rem;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: .45rem .8rem;
+    }
+
+    .dstand li:first-child {
+      border-color: var(--tc);
+      box-shadow: 0 0 40px -14px var(--tc);
+    }
+
+    .dstand .pos {
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: var(--gold);
+    }
+
+    .dstand img {
+      width: 3rem;
+      height: 3rem;
+      border-radius: 9px;
+      object-fit: cover;
+      box-shadow: 0 0 0 2px var(--tc);
+    }
+
+    .dstand .nm {
+      font-weight: 800;
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .dstand .bar {
+      height: 10px;
+      border-radius: 999px;
+      background: var(--line-soft);
+      overflow: hidden;
+    }
+
+    .dstand .bar i {
+      display: block;
+      height: 100%;
+      background: var(--tc);
+      border-radius: 999px;
+    }
+
+    .dstand .sc {
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 800;
+      font-size: 1.3rem;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      color: var(--ink);
+    }
+
+    /* ============ footer: award rows + nav ============ */
+    #dfoot {
+      flex: none;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+    }
+
+    #dfoot .awards {
+      display: flex;
+      flex-direction: column;
+      gap: .45rem;
+    }
+
+    .dnav {
+      display: flex;
+      gap: .5rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    #dfoot:not(.onQ) #btnAns,
+    #dfoot:not(.onQ) #btnClue,
+    #dfoot:not(.onQ) #btnClip {
+      display: none;
+    }
+
+    /* ============ rounds overview ============ */
+    #overview {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: none;
+      background: var(--scrim);
+      backdrop-filter: blur(11px);
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    #overview.open {
+      display: flex;
+      animation: fade .25s ease;
+    }
+
+    #overview .ocard {
+      position: relative;
+      width: min(980px, 96vw);
+      max-height: 90vh;
+      overflow: auto;
+      background: var(--modal-bg);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 1.4rem 1.6rem;
+      display: flex;
+      flex-direction: column;
+      gap: .9rem;
+    }
+
+    #overview h2 {
+      font-family: "Barlow Condensed", sans-serif;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      font-size: 1.6rem;
+      color: var(--ink);
+    }
+
+    .ovrow {
+      display: grid;
+      grid-template-columns: minmax(0, 13rem) minmax(0, 1fr);
+      gap: .8rem;
+      align-items: center;
+    }
+
+    .ovlab {
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .ovtiles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .4rem;
+    }
+
+    .otile {
+      font-family: "JetBrains Mono", monospace;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      color: var(--ink);
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: .4rem .65rem;
+      cursor: pointer;
+      transition: all .15s ease;
+    }
+
+    .otile:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .otile.done {
+      color: var(--ink-dim);
+      border-style: dashed;
+    }
+
+    .otile.cur {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+
+    /* ============ small screens ============ */
+    @media (max-width: 760px) {
+      .deckbar .dchip { font-size: .95rem; }
+      .deckbar .dpos { display: none; }
+      .dq.withMedia { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(160px, 1fr); }
+      .dstand li { grid-template-columns: 1.6rem 2.2rem minmax(0, 1fr) 4rem; }
+      .dstand .bar { display: none; }
+      .dstand img { width: 2.2rem; height: 2.2rem; }
+      .ovrow { grid-template-columns: minmax(0, 1fr); }
+    }

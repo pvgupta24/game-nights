@@ -11,16 +11,17 @@
     href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="../../engine/quizboard.css">
+  <link rel="stylesheet" href="../../engine/quizdeck.css">
 </head>
 
 <body>
-  <!-- This event = engine + config. Edit config.js (questions/teams/etc.); the
-       engine (../../engine/quizboard.js) builds the whole board from it. -->
+  <!-- This event = the quizdeck engine + config. Edit config.js (rounds/teams/etc.);
+       the engine (../../engine/quizdeck.js) builds the whole deck from it. -->
   <script src="config.js"></script>
   <!-- Optional private overlay (gitignored). Absent on a fresh clone → the browser
-       logs a harmless 404 and the public board loads. -->
+       logs a harmless 404 and the public deck loads. -->
   <script src="config.local.js"></script>
-  <script src="../../engine/quizboard.js"></script>
+  <script src="../../engine/quizdeck.js"></script>
 </body>
 
 </html>

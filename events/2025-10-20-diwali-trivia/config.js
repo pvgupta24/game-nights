@@ -1,34 +1,39 @@
 /* =====================================================================
-   Diwali Trivia · October 20, 2025 (rounds 1 to 3) · game config
+   Diwali Trivia · October 20, 2025 · game config (quizdeck)
    =====================================================================
-   The 2025 Diwali night was hosted from a slide deck in rounds, not as one
-   board. This rebuilds rounds 1 to 3 as a quizboard:
-     R1 Diwali          → 🪔 Diwali              (all 4 questions from the deck)
-     R2 Rapid fire      → 🧩 Rapid Fire 1 and 2   (the 8 picture puzzles)
-     R3 Bollywood/songs → 🎬 Bollywood + 🎶 Songs (2 questions + 4 song IDs)
-   Round 4, the Vancouver round, is its own board:
-   ../2025-10-20-diwali-trivia-vancouver/.
+   The 2025 Diwali night was hosted from a slide deck, round by round, so
+   this event uses the quizdeck engine (../../engine/quizdeck.js) instead
+   of a single board:
+     Round 1  Diwali                4 questions from the deck
+     Round 2  Rapid Fire            the 8 picture puzzles, 15 seconds each
+     Round 3  Bollywood & Songs     2 film questions + 4 song IDs
+     Round 4  Vancouver             the round that was already a quiz board
+     Round 5  Extra Time            spares from the planning doc (never hosted)
 
    Sources: the "Trivia @ Diwali 2025" deck (what was hosted) and the
-   "Diwali Trivia 2025" planning doc. Clues marked "planning doc" were in the
-   doc but not in the deck; the rest of the doc's unused ideas are on the
-   BENCH below.
+   "Diwali Trivia 2025" planning doc (the Vancouver round, the spares).
 
-   The picture puzzles are redrawn from their answers (assets/rebus-*.svg),
-   because the originals are images embedded in the deck. They sit in the
-   QUESTION text as an <img>, since a clue's img field only shows on the
-   answer side.
+   MEDIA: the deck's own pictures and clips are embedded in Google Slides,
+   so these are stand-ins: the picture puzzles are redrawn (assets/rebus-*.svg),
+   photos come from Wikimedia Commons (Special:FilePath redirects), and film,
+   TV and song clips are YouTube embeds. None of the links could be opened
+   from where this was written: play through once and swap anything that
+   looks wrong. A broken image just disappears from the slide.
+   Song clips: local clips/*.mp3 win when present (python tools/yt-download.py
+   --event 2025-10-20-diwali-trivia, or drop in the originals from the Drive
+   "Assets/Diwali Trivia" folder under the names in songs.json).
 
    Team badges are shared with the 2026 board (../2026-11-diwali-trivia/assets).
    ===================================================================== */
-const PUZZLE = n => `What phrase is this?<br><img src="assets/rebus-${n}.svg" alt="Picture puzzle ${n}" style="display:block;margin-top:.5em;width:min(100%,560px);height:auto;border-radius:14px">`;
+const COMMONS = "https://commons.wikimedia.org/wiki/Special:FilePath/";
 const BADGES = "../2026-11-diwali-trivia/assets/";
+const photo = name => COMMONS + name + "?width=960";
 
 window.TRIVIA_CONFIG = {
   meta: {
     slug: "2025-10-20-diwali-trivia",
-    version: 1,
-    mode: "quizboard",
+    version: 2,
+    mode: "quizdeck",
     pageTitle: "Diwali Trivia · October 2025",
     title: "DIWALI",
     titleAccent: "TRIVIA",
@@ -39,108 +44,191 @@ window.TRIVIA_CONFIG = {
     author: "Praveen Gupta",
   },
 
-  timers: { direct: 60, steal: 20, marker: "🪔" },
-  scoring: { bonusValue: 100, stealPenaltyRatio: 0.5 },
+  timers: { question: 60, steal: 0, marker: "🪔" },
+  scoring: { points: 100, stealPenaltyRatio: 0.5 },
+  flow: { revealOnNext: true },
   theme: { default: "diya" },
 
-  categories: [
+  rounds: [
     {
-      cat: "🪔 Diwali", clues: [
+      title: "Diwali",
+      blurb: "Legends, faiths and Diwali around the world.",
+      points: 100,
+      questions: [
         {
-          v: 100, q: "In South India, Diwali mainly celebrates the defeat of demon king X by Lord Y, which freed 16,000 people held captive. Identify X and Y.", a: "X: «Narakasura» · Y: Lord «Krishna»",
+          q: "In South India, Diwali mainly celebrates the defeat of demon king X by Lord Y, which freed 16,000 people held captive. Identify X and Y.",
+          a: "X: «Narakasura» · Y: Lord «Krishna»",
+          parts: [{ label: "X", points: 50 }, { label: "Y", points: 50 }],
+          img: photo("Krishna_Cleaves_the_Demon_Narakasura_with_his_Discus.jpg"),
         },
         {
-          v: 200, q: "For Sikhs, Diwali coincides with a historical event involving Guru Hargobind Ji. What is the event, and what is it celebrated as?", a: "The release of the sixth Sikh Guru, Guru Hargobind, and 52 Hindu princes from prison in 1619, celebrated as «Bandi Chhor Divas»",
+          q: "For Sikhs, Diwali coincides with a historical event involving Guru Hargobind Ji. What is the event, and what is it celebrated as?",
+          a: "The release of the sixth Sikh Guru, Guru Hargobind, and 52 Hindu princes from prison in 1619, celebrated as «Bandi Chhor Divas»",
+          img: photo("Bandi_Chor_Divas.jpg"),
         },
         {
-          v: 300, q: "Which 3 US states officially recognize Diwali as a holiday?", a: "«California» · «Connecticut» · «Pennsylvania»",
+          q: "Which 3 US states officially recognize Diwali as a holiday?",
+          a: "«California» · «Connecticut» · «Pennsylvania»",
           note: "As hosted in October 2025.",
+          img: [photo("Flag_of_California.svg"), photo("Flag_of_Connecticut.svg"), photo("Flag_of_Pennsylvania.svg")],
         },
         {
-          v: 400, q: "Diwali marks the day Rama, Sita and Lakshmana return to Ayodhya after 14 years in exile. How many days did it take them to walk from Sri Lanka to Ayodhya?", a: "«21 days»",
+          q: "Diwali marks the day Rama, Sita and Lakshmana return to Ayodhya after 14 years in exile. How many days did it take them to walk from Sri Lanka to Ayodhya?",
+          a: "«21 days»",
           clue: "Count the days from Dussehra to Diwali.",
+          note: "The popular explanation: a walking route from Sri Lanka to Ayodhya takes about 21 days, the same as the gap between Dussehra and Diwali. In Valmiki's Ramayana they actually fly home in the Pushpaka Vimana.",
+          img: photo("Rama_and_Sita,_with_Lakshmana_returning_to_Ayodhya.jpg"),
         },
       ]
     },
     {
-      cat: "🧩 Rapid Fire", clues: [
-        { v: 100, q: PUZZLE(1), a: "«Think outside the box»" },
-        { v: 200, q: PUZZLE(2), a: "«Read between the lines»" },
-        { v: 300, q: PUZZLE(3), a: "«Top secret»" },
-        { v: 400, q: PUZZLE(4), a: "«Once upon a time»" },
-      ]
+      title: "Rapid Fire",
+      kind: "rapid",
+      blurb: "Eight picture puzzles. Say the phrase each picture shows.",
+      points: 50, timer: 15,
+      questions: [1, 2, 3, 4, 5, 6, 7, 8].map(n => ({
+        q: "What phrase is this?",
+        qImg: `assets/rebus-${n}.svg`,
+        a: ["«Think outside the box»", "«Read between the lines»", "«Top secret»", "«Once upon a time»",
+          "«Downtown»", "«Try to understand»", "«Two peas in a pod»", "«Once in a blue moon»"][n - 1],
+        clue: n === 6 ? "Where is TRY TO sitting?" : undefined,
+      })),
     },
     {
-      cat: "🧩 Rapid Fire 2", clues: [
-        { v: 100, q: PUZZLE(5), a: "«Downtown»" },
-        { v: 200, q: PUZZLE(6), a: "«Try to understand»", clue: "Where is TRY TO sitting?" },
-        { v: 300, q: PUZZLE(7), a: "«Two peas in a pod»" },
-        { v: 400, q: PUZZLE(8), a: "«Once in a blue moon»" },
-      ]
-    },
-    {
-      cat: "🎬 Bollywood", clues: [
+      title: "Bollywood & Songs",
+      blurb: "Two film questions, then name that tune.",
+      points: 100,
+      questions: [
         {
-          // planning doc: listed as "Bahubali ne Katappa ko kyu maara", read here as a fix-the-quote clue
-          v: 100, q: "Fix this famous line: \"Baahubali ne Kattappa ko kyun maara?\"", a: "\"«Kattappa» ne «Baahubali» ko kyun maara?\" (Why did Kattappa kill Baahubali?)",
-          note: "From the planning doc, not the deck.",
+          q: "The Hindi film X is a remake of the 1989 Malayalam film <em>Ramji Rao Speaking</em>, about a popular trio. Who was originally cast as one of the trio but dropped out because of court hearings?",
+          a: "<em>«Hera Pheri»</em>: «Sanjay Dutt», as Shyam",
+          yt: { id: "5FXFnyRnl48", start: 0 },   // a Baburao scene from Hera Pheri (2000)
         },
         {
-          v: 200, q: "\"12th Fail\" was a popular 2023 Hindi movie based on the real-life story of IPS officer Manoj Kumar Sharma. What was the a) occupation and b) name of Manoj's wife?", a: "a) «IRS officer» · b) «Shraddha Joshi»",
+          q: "\"12th Fail\" was a popular 2023 Hindi movie based on the real-life story of IPS officer Manoj Kumar Sharma. What was the a) occupation and b) name of Manoj's wife?",
+          a: "a) «IRS officer» · b) «Shraddha Joshi»",
+          parts: [{ label: "Occupation", points: 50 }, { label: "Name", points: 50 }],
+          yt: { id: "3UlcKOZc41o", start: 0 },   // official trailer
         },
         {
-          v: 300, q: "The Hindi film X is a remake of the 1989 Malayalam film <em>Ramji Rao Speaking</em>, about a popular trio. Who was originally cast as one of the trio but dropped out because of court hearings?", a: "<em>«Hera Pheri»</em>: «Sanjay Dutt», as Shyam",
-        },
-        {
-          // planning doc
-          v: 400, q: "X is a fictional film about the 1999 Kargil War, directed by Farhan Akhtar. Near the end, the battalion is sent to capture Y Hill, also called Point Z. Name X, Y and Z.", a: "«Lakshya» · «Tiger» Hill · Point «5179»",
-          note: "From the planning doc, not the deck.",
-        },
-      ]
-    },
-    {
-      cat: "🎶 Songs", clues: [
-        // Local clips/*.mp3 win when present (build them from songs.json, or drop
-        // in the original clips from the Drive "Assets/Diwali Trivia" folder);
-        // otherwise the ytAudio snippet plays. YouTube starts are best guesses.
-        {
-          v: 100, q: "Identify the song and the artist.", a: "«Khairiyat» by «Arijit Singh» (<em>Chhichhore</em>, 2019)",
+          q: "Identify the song and the artist.", a: "«Khairiyat» by «Arijit Singh» (<em>Chhichhore</em>, 2019)",
+          parts: [{ label: "Song", points: 50 }, { label: "Artist", points: 20 }],
           audio: "clips/khairiyat.mp3",
           ytAudio: { id: "hoNb6HuNmU0", start: 15, duration: 12 },
           yt: { id: "hoNb6HuNmU0", start: 15 },
         },
         {
-          v: 200, q: "Identify the song and the artist.", a: "«Pretty Woman» by «Shankar Mahadevan» (<em>Kal Ho Naa Ho</em>, 2003)",
-          audio: "clips/pretty-woman.mp3",
-          ytAudio: { id: "70QpN7DvaK4", start: 0, duration: 12 },
-          yt: { id: "70QpN7DvaK4", start: 0 },
+          q: "Identify the song and the artist.", a: "«Kya Khoob Lagti Ho» by «Mukesh» (with Kanchan), <em>Dharmatma</em> (1975)",
+          parts: [{ label: "Song", points: 50 }, { label: "Artist", points: 20 }],
+          note: "The 2025 deck scored this one 5 for the song and 2 for the artist; every song here uses the same split.",
+          audio: "clips/kya-khoob-lagti-ho.mp3",
+          ytAudio: { id: "A_vcoAPoprg", start: 0, duration: 12 },
+          yt: { id: "A_vcoAPoprg", start: 0 },
         },
         {
-          v: 300, q: "Identify the song and the artist.", a: "«Lamha Lamha» (<em>Gangster</em>, 2006): music by «Pritam», sung by «Abhijeet» and «Sunidhi Chauhan»",
+          q: "Identify the song and the artist.", a: "«Lamha Lamha» (<em>Gangster</em>, 2006): music by «Pritam», sung by «Abhijeet» and «Sunidhi Chauhan»",
+          parts: [{ label: "Song", points: 50 }, { label: "Artist", points: 20 }],
           audio: "clips/lamha-lamha.mp3",
           ytAudio: { id: "CApsy8SR3k0", start: 20, duration: 12 },
           yt: { id: "CApsy8SR3k0", start: 20 },
         },
         {
-          v: 400, q: "Identify the song and the artist.", a: "«Kya Khoob Lagti Ho» by «Mukesh» (with Kanchan), <em>Dharmatma</em> (1975)",
-          note: "In 2025 this one scored 5 for the song and 2 for the artist.",
-          audio: "clips/kya-khoob-lagti-ho.mp3",
-          ytAudio: { id: "A_vcoAPoprg", start: 0, duration: 12 },
-          yt: { id: "A_vcoAPoprg", start: 0 },
+          q: "Identify the song and the artist.", a: "«Pretty Woman» by «Shankar Mahadevan» (<em>Kal Ho Naa Ho</em>, 2003)",
+          parts: [{ label: "Song", points: 50 }, { label: "Artist", points: 20 }],
+          audio: "clips/pretty-woman.mp3",
+          ytAudio: { id: "70QpN7DvaK4", start: 0, duration: 12 },
+          yt: { id: "70QpN7DvaK4", start: 0 },
+        },
+      ]
+    },
+    {
+      // "PG Vancouver Jeopardy" in the deck: it was already a board, so it stays one
+      title: "Vancouver",
+      kind: "board",
+      blurb: "Pick a category and a value. A wrong steal costs half.",
+      timer: 60, steal: 20,
+      categories: [
+        {
+          cat: "🚦 Intersections", clues: [
+            { v: 200, q: "Name the intersection: Pacific Centre, the Hudson's Bay building, London Drugs and Vancouver City Centre Station.", a: "«Granville» & «Georgia»", img: photo("Former_Hudson%27s_Bay_Company_department_store_674_Granville_Street_Vancouver_BC_V6C_3J3_Canada.jpg") },
+            { v: 400, q: "Name the intersection: Best Buy, Old Navy, Pacific Centre and the Ox Pub.", a: "«Granville» & «Robson»" },
+            { v: 600, q: "Name the intersection: Lululemon, L'Occitane en Provence, Roots and the former Victoria's Secret store.", a: "«Robson» & «Burrard»", img: photo("Vancouver_-_Robson_street_sign.jpg") },
+            { v: 800, q: "Name the intersection: Bentall One, the Pod (Scotiabank), the Douglas Jung Building and Commerce Place.", a: "«Burrard» & «Pender»", img: photo("3_Bentall_Centre_(Vancouver_2010).jpg") },
+            { v: 1000, q: "Name the intersection: Safeway, Chungchun, Starbucks and Holy Guacamole Mexican Restaurant.", a: "«Robson» & «Denman»" },
+          ]
+        },
+        {
+          cat: "🚌 Transit", clues: [
+            { v: 200, q: "Which bus route runs from Joyce-Collingwood Station to UBC?", a: "The «R4»", img: photo("Translink_B18006_R4.jpg") },
+            { v: 400, q: "Which bus route runs from VCC-Clark Station to UBC?", a: "The «84»" },
+            { v: 600, q: "Which bus route runs from Powell to UBC?", a: "The «4»" },
+            { v: 800, q: "Which bus route runs from Metrotown to SFU Exchange?", a: "The «144»" },
+            { v: 1000, q: "Which bus route runs from Kootenay Loop to Port Coquitlam Station?", a: "The «160»" },
+          ]
+        },
+        {
+          cat: "🏒 Sports", clues: [
+            { v: 200, q: "How many top-tier professional sports teams play in Vancouver?", a: "«3»: the Canucks, the Whitecaps and the Warriors", note: "Debatable: the BC Lions (CFL) also play at BC Place.", img: photo("BC_Place_(Vancouver).jpg") },
+            { v: 400, q: "Rogers Arena sits on this street.", a: "«Griffiths Way»", img: photo("Rogers_Arena_(Vancouver).jpg") },
+            { v: 600, q: "How many times have the Canucks reached the Stanley Cup Final?", a: "«3» (1982, 1994 and 2011)" },
+            { v: 800, q: "Give the full name of the Vancouver Canadians' home stadium and field.", a: "«Scotiabank Field at Nat Bailey Stadium»", img: photo("Natbailey.jpg") },
+            { v: 1000, q: "Where did the Whitecaps play their first MLS home game?", a: "«Empire Field», right beside Playland", img: photo("Empire_Field_with_Whitecaps_fans.jpg") },
+          ]
+        },
+        {
+          cat: "🎬 Filmed Here", clues: [
+            { v: 200, q: "Filmed in Vancouver: an invincible, burnt man seeks his revenge on a twisted experimenter.", a: "«Deadpool»", yt: { id: "ONHBaC-pfsk", start: 0 } },
+            { v: 400, q: "Filmed in Vancouver: a crocodile, a coach and a Sandler collide in this comedy.", a: "«Happy Gilmore»", yt: { id: "8MVpWIR-Wlg", start: 0 } },
+            { v: 600, q: "Filmed in Vancouver: the strongest man alive comes to Earth in this DC film.", a: "«Man of Steel»", yt: { id: "QD-Cg64GuvI", start: 0 } },
+            { v: 800, q: "Filmed in Vancouver: Dwayne Johnson stars in this high-flying action movie.", a: "«Skyscraper»", yt: { id: "IvmdClUU1F4", start: 0 } },
+            { v: 1000, q: "Filmed in Vancouver: Ethan Hunt and his colleagues go rogue in this action film, the fourth in its series.", a: "«Mission: Impossible, Ghost Protocol»", yt: { id: "EDGYVFZxsXQ", start: 0 } },
+          ]
+        },
+        {
+          cat: "📺 TV Filmed Here", clues: [
+            { v: 200, q: "John Cena stars as a peace-obsessed antihero in this HBO Max series, which filmed its action-packed scenes in Vancouver, including fights in abandoned warehouses.", a: "«Peacemaker»", yt: { id: "YBRgXdHEwB4", start: 0 } },
+            { v: 400, q: "Grant Gustin sped through Vancouver's streets as Barry Allen in this CW series about a forensic scientist who gains super speed after a particle accelerator explosion.", a: "«The Flash»", yt: { id: "Wf6WfQdZ39g", start: 0 } },
+            { v: 600, q: "Tom Ellis played the charming devil who leaves Hell for Los Angeles in this series, which was shot in Vancouver, using local soundstages for the nightclub scenes.", a: "«Lucifer»", yt: { id: "7o9Z2YWhuiE", start: 0 } },
+            { v: 800, q: "Fairy tale characters like Snow White and Rumplestiltskin live in the modern world in this ABC show, with Vancouver's Steveston village doubling as Storybrooke.", a: "«Once Upon a Time»", yt: { id: "15__iA1MTqc", start: 0 } },
+            { v: 1000, q: "Walker Scobell stars as a young demigod in this Disney+ adaptation of Rick Riordan's books, whose third season was filming in Vancouver's studios and forests in October 2025.", a: "«Percy Jackson and the Olympians»", yt: { id: "9-V2JRBeSDg", start: 0 } },
+          ]
+        },
+      ]
+    },
+    {
+      title: "Extra Time",
+      blurb: "Spares from the planning doc that didn't make the 2025 deck. Play them for a tie-breaker, or skip to the standings.",
+      points: 100,
+      questions: [
+        {
+          q: "In which Southeast Asian country with a large Indian diaspora is Diwali a public holiday, celebrated with open houses, cultural shows and local touches like dragon dances?",
+          a: "«Malaysia»",
+          note: "Others with a Diwali public holiday: Fiji, Guyana, Mauritius, Myanmar, Nepal, Pakistan, Singapore, Sri Lanka, Suriname, Trinidad and Tobago.",
+        },
+        {
+          // the doc listed only "Bahubali ne Katappa ko kyu maara", read here as a fix-the-quote question
+          q: "Fix this famous line: \"Baahubali ne Kattappa ko kyun maara?\"",
+          a: "\"«Kattappa» ne «Baahubali» ko kyun maara?\" (Why did Kattappa kill Baahubali?)",
+          yt: { id: "8uw0vW_eolo", start: 0 },   // Baahubali 2 trailer
+        },
+        {
+          q: "X is a fictional film about the 1999 Kargil War, directed by Farhan Akhtar. Near the end, the battalion is sent to capture Y Hill, also called Point Z. Name X, Y and Z.",
+          a: "«Lakshya» · «Tiger» Hill · Point «5179»",
+          yt: { id: "8DMF0U6xV78", start: 0 },   // Lakshya title track
         },
       ]
     },
   ],
 
-  /* ---- BENCH: from the planning doc, never hosted. Paste one over a clue above.
-     { v: 0, q: "In which Southeast Asian country with a large Indian diaspora is Diwali a public holiday, celebrated with open houses, cultural shows and local touches like dragon dances?", a: "«Malaysia»",
-       b: "Name another country where Diwali is a public holiday.", bA: "Fiji · Guyana · Mauritius · Myanmar · Nepal · Pakistan · Singapore · Sri Lanka · Suriname · Trinidad and Tobago" },
-     { v: 0, q: "In Gujarat, Diwali signals the start of the New Year. What ritual with ledger books do many Gujarati families perform?", a: "«Chopda Pujan» (worship of the account books)" },
-     { v: 0, q: "Which UK city hosts the largest Diwali celebrations outside India, lighting up its Golden Mile?", a: "«Leicester»" },
+  /* ---- BENCH: more from the planning doc, never hosted.
+     Transit: Park Royal to Phibbs Exchange → R2 · Phibbs Exchange to Metrotown (Willingdon Express) → 222 ·
+              Scott Road to Newton Exchange → R6 · Dunbar to Nanaimo Station → 7 · 22nd Street Station to Marpole Loop → 100
+     Filmed here: The Last of Us (no clue written yet)
      Songs the doc listed but the deck didn't use: Dil Hai Ki Maanta Nahin · Kiliye Kiliye ·
      Didi Tera Devar Deewana · Jab Koi Baat Bigad Jaaye · Navrai Majhi.
      The doc also linked a ready-made "guess the old song in 5 seconds" round:
      https://www.youtube.com/watch?v=pbNqG2mcMvg
+     Crossed out in the doc: Chopda Pujan (Gujarati ledger worship) and Leicester's Golden Mile.
   */
 
   teams: {
@@ -180,15 +268,14 @@ window.TRIVIA_CONFIG = {
   rules: {
     openOnLoad: true,
     answerNote: {
-      heading: "Answer in the form of a question",
-      body: `Classic quiz-show rules: phrase every answer as a question, like <b>"What is…?"</b> or <b>"Who is…?"</b>`,
-      example: `e.g. "The Festival of Lights" → "What is Diwali?" 🪔`,
+      heading: "Five rounds, one scoreboard",
+      body: `Diwali · Rapid Fire · Bollywood & Songs · a Vancouver quiz board · and Extra Time if we need a tie-breaker.`,
+      example: `Some questions score in parts: 50 for the song, 20 for the artist 🎶`,
     },
     items: [
-      { num: "1", text: `Teams on their turn pick a question (a category and a points value). <small>Higher value = tougher question.</small>` },
-      { num: "2", text: `Direct question: answer in <b>60</b> seconds. No penalty for getting it wrong.` },
-      { num: "3", text: `Missed questions bounce to the other teams in order to steal. A wrong steal <b>costs</b> that team <b>half</b> the points. <small>First steal has the penalty; none after that.</small>` },
-      { num: "4", text: `Rapid fire puzzles: say the phrase the picture shows.` },
+      { num: "1", text: `Questions go to each team in turn. <b>60</b> seconds to answer; rapid fire gets <b>15</b>.` },
+      { num: "2", text: `Miss it and it passes to the next team.` },
+      { num: "3", text: `The Vancouver round is a quiz board: pick a category and a value. A wrong steal there costs <b>half</b> the points.` },
       { num: "★", text: `Trash-talk? Allowed. Bribing the host with mithai? <b>Strongly encouraged.</b>` },
     ],
   },

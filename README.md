@@ -53,6 +53,8 @@ game-nights/
 ├── engine/
 │   ├── quizboard.css     the board's styles
 │   ├── quizboard.js      the whole game engine (reads window.TRIVIA_CONFIG)
+│   ├── quizdeck.css      round-by-round mode styles (loaded after quizboard.css)
+│   ├── quizdeck.js       round-by-round mode engine (meta.mode "quizdeck")
 │   ├── team-cards.css   printable-cards styles
 │   └── team-cards.js    printable-cards engine
 ├── events/
@@ -190,6 +192,69 @@ The demo's **✍️ Formatting** category demonstrates each of these on screen.
 
 ---
 
+## Quizdeck mode: a round-by-round game
+
+Some nights aren't one board: they run in rounds, like a slide deck. The
+**quizdeck** engine plays a cover, then each round's title card and its questions
+one at a time, then the final standings, with one scoreboard across the night.
+A round can also be a **board** (categories × values) for a quiz-show segment
+inside the deck. [events/2025-10-20-diwali-trivia](events/2025-10-20-diwali-trivia/)
+is a full example.
+
+An event opts in with `meta.mode: "quizdeck"` and a shell that loads both
+stylesheets and the quizdeck engine:
+
+```html
+<link rel="stylesheet" href="../../engine/quizboard.css">  <!-- themes + shared UI -->
+<link rel="stylesheet" href="../../engine/quizdeck.css">
+<script src="config.js"></script>
+<script src="config.local.js"></script>
+<script src="../../engine/quizdeck.js"></script>
+```
+
+`meta`, `teams`, `celebrations`, `rules` and `winner` work exactly as above. In
+place of `categories`, a quizdeck config has `rounds`:
+
+```js
+timers: { question: 60, steal: 0, marker: "🪔" },  // seconds per question; steal 0 = no steal clock
+scoring: { points: 100, stealPenaltyRatio: 0.5 },  // default points; a deduction costs half
+flow: { revealOnNext: true },                      // → on a question shows its answer first
+rounds: [
+  { title: "Diwali", blurb: "…", points: 100, questions: [
+      { q: "…", a: "…", img: "answer.jpg" },
+      { q: "Identify the song and the artist.", a: "…",
+        parts: [{ label: "Song", points: 50 }, { label: "Artist", points: 20 }],
+        ytAudio: { id: "…", start: 15, duration: 12 }, yt: { id: "…", start: 15 } },
+  ] },
+  { title: "Rapid Fire", kind: "rapid", points: 50, timer: 15, questions: [
+      { q: "What phrase is this?", qImg: "assets/puzzle.svg", a: "…" },
+  ] },
+  { title: "Vancouver", kind: "board", timer: 60, steal: 20, categories: [
+      { cat: "Sports", clues: [{ v: 200, q: "…", a: "…" }] },
+  ] },
+],
+```
+
+| field | notes |
+|---|---|
+| round `title` / `blurb` | shown on the round's title card |
+| round `kind` | `"questions"` (default), `"rapid"` (styled as rapid fire) or `"board"` |
+| round `points` / `timer` / `steal` | per-round defaults for its questions |
+| `q` / `a` / `clue` / `note` | as on the board |
+| `qImg` | image(s) shown **with the question** (a path, a URL or a list) |
+| `img` | image(s) shown with the **answer** (a list shows side by side) |
+| `yt` | YouTube video on the answer (wins over `img`) |
+| `audio` / `ytAudio` | question clip, local mp3 first, as on the board |
+| `points` | this question's value; or `parts` to award in pieces, one row of team chips each |
+
+Quizdeck keys: **→** / **PageDown** / **Enter** next (shows the answer first), **←**
+back, **O** rounds overview (jump anywhere), **Home** / **End** cover / standings,
+**Esc** back to the board from a board question. **A**, **C**, **M**, **Space**,
+**1-8** / **⇧1-8**, **G**, **W**, **Y** and **?** work as on the board. A presenter
+clicker works too, since it sends Page Down and Page Up.
+
+---
+
 ## Music round: clips & the downloader
 
 Each music clue can be answered two ways, and the engine prefers whichever is
@@ -283,8 +348,9 @@ default experience stays a folder + one config file.
   shared TV screen.
 - **Admin mode** — an in-browser builder that creates and edits the `config.js`
   (questions, teams, media) without touching code.
-- **More game modes** — standalone music round, rapid-fire, final wager (the config
-  already carries `meta.mode` for this).
+- **More game modes**: standalone music round, final wager. The round-by-round
+  **quizdeck** (with rapid-fire and board rounds) is the first one beyond the board;
+  see "Quizdeck mode" above.
 
 ---
 
